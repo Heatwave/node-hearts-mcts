@@ -1,0 +1,27 @@
+{
+  "name": "hearts-mcts",
+  "version": "1.0.0",
+  "description": "Use Monte Carlo tree Search to play Hearts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild",
+    "build": "node-gyp configure build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Heatwave/node-hearts-mcts.git"
+  },
+  "keywords": [
+    "MCTS",
+    "Hearts",
+    "addon"
+  ],
+  "author": "Heatwave",
+  "license": "MIT",
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/Heatwave/node-hearts-mcts/issues"
+  },
+  "homepage": "https://github.com/Heatwave/node-hearts-mcts#readme"
+}
