@@ -13,7 +13,16 @@ struct stru_me {
     char *candidate_cards[64];
 };
 
+struct player {
+    char *name;
+    int32_t deal_score;
+    int32_t cards_count;
+    char *round_card;
+};
+
 int get_parameter_me(napi_env env, napi_value me_js_obj, struct stru_me *me);
+int get_parameter_players(napi_env env, napi_value players_js_array, struct player players[]);
+int get_player_info(napi_env env, napi_value player_js_obj, struct player *player);
 
 napi_value uct(napi_env env, napi_callback_info info)
 {
@@ -25,6 +34,7 @@ napi_value uct(napi_env env, napi_callback_info info)
 
     int32_t itermax;
     struct stru_me me;
+    struct player players[3];
 
     napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
     if (argc != 5)
@@ -37,6 +47,9 @@ napi_value uct(napi_env env, napi_callback_info info)
     if (status != napi_ok) return NULL;
 
     is_call_success = get_parameter_me(env, argv[1], &me);
+    if (is_call_success != 0) return NULL;
+
+    is_call_success = get_parameter_players(env, argv[2], players);
     if (is_call_success != 0) return NULL;
 
     napi_value action_js;
@@ -119,6 +132,75 @@ int get_parameter_me(napi_env env, napi_value me_js_obj, struct stru_me *me)
         status = napi_get_value_string_utf8(env, card_str, me->candidate_cards[i], card_str_len+1, 0);
         if (status != napi_ok) return 1;
     }
+
+    return 0;
+}
+
+int get_parameter_players(napi_env env, napi_value players_js_array, struct player players[])
+{
+    napi_status status;
+    uint32_t i, players_len;
+
+    status = napi_get_array_length(env, players_js_array, &players_len);
+    if (status != napi_ok) return 1;
+
+
+    int is_get_player_success;
+    napi_value player_js_obj;
+    for (i = 0; i < players_len; i++) {
+        status = napi_get_element(env, players_js_array, i, &player_js_obj);
+        is_get_player_success = get_player_info(env, player_js_obj, &players[i]);
+        if (is_get_player_success != 0) return 1;
+    }
+
+    return 0;
+}
+
+int get_player_info(napi_env env, napi_value player_js_obj, struct player *player)
+{
+    napi_status status;
+
+    napi_value name_js;
+    status = napi_get_named_property(env, player_js_obj, "player_name", &name_js);
+    if (status != napi_ok) return 1;
+
+    size_t name_len;
+    status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
+    if (status != napi_ok) return 1;
+
+    player->name = malloc(name_len + 1);
+    status = napi_get_value_string_utf8(env, name_js, player->name, name_len+1, 0);
+    if (status != napi_ok) return 1;
+
+
+    napi_value deal_score_js;
+    status = napi_get_named_property(env, player_js_obj, "deal_score", &deal_score_js);
+    if (status != napi_ok) return 1;
+
+    status = napi_get_value_int32(env, deal_score_js, &player->deal_score);
+    if (status != napi_ok) return 1;
+
+
+    napi_value cards_count_js;
+    status = napi_get_named_property(env, player_js_obj, "cards_count", &cards_count_js);
+    if (status != napi_ok) return 1;
+
+    status = napi_get_value_int32(env, cards_count_js, &player->cards_count);
+    if (status != napi_ok) return 1;
+
+
+    napi_value round_card_js;
+    status = napi_get_named_property(env, player_js_obj, "round_card", &round_card_js);
+    if (status != napi_ok) return 1;
+
+    size_t round_card_len;
+    status = napi_get_value_string_utf8(env, round_card_js, NULL, 0, &round_card_len);
+    if (status != napi_ok) return 1;
+
+    player->round_card = malloc(round_card_len + 1);
+    status = napi_get_value_string_utf8(env, round_card_js, player->round_card, round_card_len+1, 0);
+    if (status != napi_ok) return 1;
+
 
     return 0;
 }
