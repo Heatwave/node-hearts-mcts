@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 napi_value uct();
 napi_value Init(napi_env, napi_value exports);
@@ -39,6 +40,11 @@ int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char 
 
 char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *player_order[], char *left_cards[]);
 void init_rootnode(struct node *, struct stru_me *me);
+
+size_t get_char_p_array_non_null_elements_count(char *arr[], size_t len);
+size_t get_node_array_non_null_elements_count(struct node *arr[], size_t len);
+
+char *uct_select_child(const struct node *n);
 
 napi_value uct(napi_env env, napi_callback_info info)
 {
@@ -302,6 +308,12 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
         action_node = &rootnode;
 
         // Select
+        while (get_char_p_array_non_null_elements_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0])) == 0
+        && get_node_array_non_null_elements_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0])) != 0) {
+            char *selected_action;
+            selected_action = uct_select_child(action_node);
+            //do_move();
+        }
 
         // Expand
 
@@ -341,6 +353,55 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
         *pp++ = NULL;
     }
     assert((pp - rootnode->untried_moves) == sizeof(rootnode->untried_moves) / sizeof(rootnode->untried_moves[i]));
+}
+
+size_t get_char_p_array_non_null_elements_count(char *arr[], size_t len)
+{
+    size_t i;
+    size_t count = 0;
+
+    for (i = 0; i < len; i++) {
+        if (arr[i] != NULL)
+            ++count;
+    }
+
+    return count;
+}
+
+size_t get_node_array_non_null_elements_count(struct node *arr[], size_t len)
+{
+    size_t i;
+    size_t count = 0;
+
+    for (i = 0; i < len; i++) {
+        if (arr[i] != NULL)
+            ++count;
+    }
+
+    return count;
+}
+
+char *uct_select_child(const struct node *n)
+{
+    char *selected;
+    size_t i;
+    double uct_value, best_value;
+    for (i = 0; i < sizeof(n->children) / sizeof(n->children[0]); i++) {
+        if (n->children[i] == NULL)
+            continue;
+
+        struct node *c = n->children[i];
+
+        uct_value = c->wins / c->visits + sqrt(2 * log(n->visits) / c->visits);
+
+        if (uct_value > best_value) {
+            selected = c->move;
+            best_value = uct_value;
+        }
+    }
+
+    char *temp = strdup(selected);
+    return temp;
 }
 
 napi_value Init(napi_env env, napi_value exports)
