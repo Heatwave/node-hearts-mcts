@@ -58,5 +58,5 @@ const left_cards = all_pokers.filter(value => {
     return true;
 });
 
-const action = mcts(100, me, players, player_order, left_cards);
+const action = mcts(50, me, players, player_order, left_cards);
 console.log(action);
