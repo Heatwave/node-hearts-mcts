@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 
 napi_value uct();
 napi_value Init(napi_env, napi_value exports);
@@ -41,8 +42,8 @@ int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char 
 char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *player_order[], char *left_cards[]);
 void init_rootnode(struct node *, struct stru_me *me);
 
-size_t get_char_p_array_non_null_elements_count(char *arr[], size_t len);
-size_t get_node_array_non_null_elements_count(struct node *arr[], size_t len);
+size_t get_untried_moves_count(char *arr[], size_t len);
+size_t get_child_nodes_count(struct node *arr[], size_t len);
 
 char *uct_select_child(const struct node *n);
 
@@ -304,18 +305,47 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
 
     struct node *action_node;
 
+    struct stru_me cloned_me;
+    struct player cloned_players[3];
+    char *cloned_player_order[4];
+    char *cloned_left_cards[64];
+
+    size_t untried_moves_count, child_nodes_count, random_index;
+
+    char *selected_move;
+
+    // initialize random seed
+    srand(time(NULL));
+
     for (i = 0; i < itermax; i++) {
         action_node = &rootnode;
 
+        clone_me(&me, &cloned_me);
+        clone_players(players, cloned_players);
+        clone_player_order(player_order, cloned_player_order);
+        clone_left_cards(left_cards, cloned_left_cards);
+
         // Select
-        while (get_char_p_array_non_null_elements_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0])) == 0
-        && get_node_array_non_null_elements_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0])) != 0) {
-            char *selected_action;
-            selected_action = uct_select_child(action_node);
-            //do_move();
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
+        child_nodes_count = get_child_nodes_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0]));
+
+        while (untried_moves_count == 0 && child_nodes_count != 0) {
+            selected_move = uct_select_child(action_node);
+            do_move(selected_move);
+
+            untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
+            child_nodes_count = get_child_nodes_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0]));
         }
 
         // Expand
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
+
+        if (untried_moves_count > 0) {
+            random_index = rand() % untried_moves_count;
+            selected_move = action_node->untried_moves[random_index];
+            do_move(selected_move);
+            action_node = node_add_child(selected_move, action_node);
+        }
 
         // Rollout
 
@@ -355,7 +385,7 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
     assert((pp - rootnode->untried_moves) == sizeof(rootnode->untried_moves) / sizeof(rootnode->untried_moves[i]));
 }
 
-size_t get_char_p_array_non_null_elements_count(char *arr[], size_t len)
+size_t get_untried_moves_count(char *arr[], size_t len)
 {
     size_t i;
     size_t count = 0;
@@ -368,7 +398,7 @@ size_t get_char_p_array_non_null_elements_count(char *arr[], size_t len)
     return count;
 }
 
-size_t get_node_array_non_null_elements_count(struct node *arr[], size_t len)
+size_t get_child_nodes_count(struct node *arr[], size_t len)
 {
     size_t i;
     size_t count = 0;
