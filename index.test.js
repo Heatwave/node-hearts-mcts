@@ -19,7 +19,7 @@ const all_pokers = [
 const me = {
     "player_name": 'me',
     "deal_score": 0,
-    "cards": ['QS', 'JS', 'TC', '8S', '3S', 'AH', '5H', '3H', '7C', 'AC', 'JD', '6D'],
+    "cards": ['QS', 'JS', 'TC', '8S', '3S', 'AH', '5H', '3H', '7C', 'AC', 'JD', '6D', "AD"],
     "cards_count": 13,
     "candidate_cards": ['AC', '7C', 'TC']
 };
@@ -57,6 +57,8 @@ const left_cards = all_pokers.filter(value => {
 
     return true;
 });
+
+console.log("left_cards: " + left_cards);
 
 const action = mcts(50, me, players, player_order, left_cards);
 console.log(action);
