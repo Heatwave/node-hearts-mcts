@@ -19,9 +19,9 @@ const all_pokers = [
 const me = {
     "player_name": 'me',
     "deal_score": 0,
-    "cards": ['QS', 'JS', 'TC', '8S', '3S', 'AH', '5H', '3H', '7C', 'AC', 'JD', '6D', "AD"],
+    "cards": ['4S', 'JS', '8S', '3S', 'AH', '5H', '3C', '7C', 'TC', 'AC', 'QC', 'KC', "AD"],
     "cards_count": 13,
-    "candidate_cards": ['AC', '7C', 'TC']
+    "candidate_cards": ['AC', '7C', 'TC', 'QC', 'KC']
 };
 
 const players = [
@@ -29,13 +29,13 @@ const players = [
         "player_name": 'p1',
         "deal_score": 0,
         "cards_count": 12,
-        "round_card": '2C'
+        "round_card": 'QS'
     },
     {
         "player_name": 'p2',
         "deal_score": 0,
-        "cards_count": 12,
-        "round_card": '3C'
+        "cards_count": 13,
+        "round_card": ''
     },
     {
         "player_name": 'p3',
@@ -60,5 +60,5 @@ const left_cards = all_pokers.filter(value => {
 
 console.log("left_cards: " + left_cards);
 
-const action = mcts(50, me, players, player_order, left_cards);
+const action = mcts(20, me, players, player_order, left_cards);
 console.log(action);
