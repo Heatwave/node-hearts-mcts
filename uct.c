@@ -484,6 +484,7 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
     */
 
     uint32_t best_wins = 0;
+    result_action = rootnode.children[0]->move;
     for (i = 0; i < MAX_CHILDREN_LEN; ++i) {
         if (rootnode.children[i] != NULL && rootnode.children[i]->move != NULL
         && rootnode.children[i]->wins > best_wins) {

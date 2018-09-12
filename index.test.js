@@ -19,33 +19,33 @@ const all_pokers = [
 const me = {
     "player_name": 'me',
     "deal_score": 0,
-    "cards": ['4S', 'JS', '8S', '3S', '3H', '5H', '3C', '7C', 'TC', 'AC', 'QC', 'KC', "AD"],
-    "cards_count": 13,
-    "candidate_cards": ['3H', '5H']
+    "cards": ['AS', 'KS', '9S', '8S'],
+    "cards_count": 4,
+    "candidate_cards": ['AS', 'KS', '9S', '8S']
 };
 
 const players = [
     {
         "player_name": 'p1',
         "deal_score": 0,
-        "cards_count": 12,
-        "round_card": 'AH'
+        "cards_count": 4,
+        "round_card": ''
     },
     {
         "player_name": 'p2',
         "deal_score": 0,
-        "cards_count": 13,
+        "cards_count": 4,
         "round_card": ''
     },
     {
         "player_name": 'p3',
         "deal_score": 0,
-        "cards_count": 13,
-        "round_card": ''
+        "cards_count": 3,
+        "round_card": '5S'
     }
 ];
 
-const player_order = ['p1', 'p2', 'p3', 'me'];
+const player_order = ['p3', 'me', 'p1', 'p2'];
 
 const left_cards = all_pokers.filter(value => {
     if (me.cards.indexOf(value) >= 0)
