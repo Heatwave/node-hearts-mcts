@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
+#include <ctype.h>
 
 #define MAX_CARDS_LEN 64
 #define MAX_CHILDREN_LEN 32
@@ -54,16 +55,20 @@ void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me);
 void clone_players(struct player ori_players[], struct player cloned_players[]);
 void clone_player_order(char **player_order, char **cloned_player_order);
 
-size_t get_untried_moves_count(char *arr[], size_t len);
+size_t get_untried_moves_count(char *untried_moves[], size_t len);
+
 size_t get_child_nodes_count(struct node *arr[], size_t len);
 
+void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[]);
+
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
+int rankcmp(char a, char b);
 char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
 void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_move);
 void pick_card_player(struct player *cur_player, char played_suit);
 
-char *uct_select_child(const struct node *n);
-struct node node_add_child(char *selected_move, struct node *action_node, struct stru_me *cloned_me);
+struct node *uct_select_child(const struct node *n);
+struct node *node_add_child(char *selected_move, struct node *action_node, struct stru_me *cloned_me);
 
 void init_childnode(struct node *child, char *move, struct node *parent, struct stru_me *me);
 
@@ -368,29 +373,29 @@ void distribute_left_cards(char **left_cards, struct player players[])
             pl->cards[j] = strdup(*pp++);
         }
     }
-    assert(*pp == NULL);
 
     // TODO: remove following test code
     for (i = 0; i < 3; i++) {
         struct player *pl = &players[i];
         cards_count = pl->cards_count;
-        printf("name: %s\tcards: ", pl->name);
+        //printf("name: %s\tcards: ", pl->name);
         for (j = 0; j < (size_t)cards_count; j++) {
-            printf("%s ", pl->cards[j]);
+            //printf("%s ", pl->cards[j]);
         }
-        printf("\n");
+        //printf("\n");
     }
 }
 
 char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *player_order[], char* left_cards[])
 {
-    char *result_action = "7C";
+    char *result_action = "2C";
     int32_t i;
 
     struct node rootnode;
     init_rootnode(&rootnode, &me);
 
     struct node *action_node;
+    struct node *new_child_node;
 
     struct stru_me cloned_me;
     struct player cloned_players[3];
@@ -401,6 +406,7 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
     char *selected_move;
 
     for (i = 0; i < itermax; i++) {
+        //printf("itermax: %d\n", i);
         action_node = &rootnode;
 
         clone_me(&me, &cloned_me);
@@ -414,63 +420,76 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
         untried_moves_count = 0;
         size_t j;
 
-        for (j = 0; j < MAX_CARDS_LEN; ++j) {
-            if (action_node->untried_moves[j] != NULL)
-                ++untried_moves_count;
-        }
-        //untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
 
         child_nodes_count = 0;
         for (j = 0; j < MAX_CHILDREN_LEN; ++j) {
             if (action_node->children[j] != NULL)
                 ++child_nodes_count;
         }
-        //child_nodes_count = get_child_nodes_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0]));
 
         while (untried_moves_count == 0 && child_nodes_count != 0) {
-            selected_move = uct_select_child(action_node);
+            new_child_node = uct_select_child(action_node);
+            action_node = new_child_node;
+            //printf("%s\n", new_child_node->move);
+            selected_move = strdup(new_child_node->move);
             do_move(selected_move, &cloned_me, cloned_players, cloned_player_order);
 
-            untried_moves_count = 0;
-            for (j = 0; j < MAX_CARDS_LEN; ++j) {
-                if (action_node->untried_moves[j] != NULL)
-                    ++untried_moves_count;
-            }
+            untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
             child_nodes_count = 0;
             for (j = 0; j < MAX_CHILDREN_LEN; ++j) {
                 if (action_node->children[j] != NULL)
                     ++child_nodes_count;
             }
-            //untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
-            //child_nodes_count = get_child_nodes_count(action_node->children, sizeof(action_node->children) / sizeof(action_node->children[0]));
         }
 
         // Expand
-        //untried_moves_count = get_untried_moves_count(action_node->untried_moves, sizeof(action_node->untried_moves) / sizeof(action_node->untried_moves[0]));
-        untried_moves_count = 0;
-        for (j = 0; j < MAX_CARDS_LEN; ++j) {
-            if (action_node->untried_moves[j] != NULL)
-                ++untried_moves_count;
-        }
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
 
         if (untried_moves_count > 0) {
             random_index = rand() % untried_moves_count;
             selected_move = action_node->untried_moves[random_index];
             do_move(selected_move, &cloned_me, cloned_players, cloned_player_order);
-            struct node new_child_node = node_add_child(selected_move, action_node, &cloned_me);
-            action_node = &new_child_node;
-            printf("action_node->move: %s\n", action_node->move);
+            new_child_node = node_add_child(selected_move, action_node, &cloned_me);
+            action_node = new_child_node;
+            //printf("action_node->move: %s\n", action_node->move);
         }
 
-        untried_moves_count = 0;
-        for (j = 0; j < MAX_CARDS_LEN; ++j) {
-            if (action_node->untried_moves[j] != NULL)
-                ++untried_moves_count;
-        }
-        printf("untried_moves_count: %zu\n", untried_moves_count);
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
+
         // Rollout
+        while (cloned_me.cards_count > 0) {
+            //printf("cloned_me.cards_count: %d\n", cloned_me.cards_count);
+            do_move(NULL, &cloned_me, cloned_players, cloned_player_order);
+        }
+
+        assert(cloned_players[0].cards_count == 0);
+        assert(cloned_players[1].cards_count == 0);
+        assert(cloned_players[2].cards_count == 0);
 
         // Backpropagate
+        while (action_node != NULL) {
+            update_node_with_result(action_node, &cloned_me, cloned_players);
+            //printf("action_node->visits: %d, wins: %d\n", action_node->visits, action_node->wins);
+            action_node = action_node->parent;
+        }
+    }
+
+    /*
+    for (i = 0; i < MAX_CHILDREN_LEN; i++) {
+        if (rootnode.children[i] != NULL)
+            printf("move: %s, wins: %d, visits: %d\t", rootnode.children[i]->move, rootnode.children[i]->wins, rootnode.children[i]->visits);
+    }
+    printf("\n");
+    */
+
+    uint32_t best_wins = 0;
+    for (i = 0; i < MAX_CHILDREN_LEN; ++i) {
+        if (rootnode.children[i] != NULL && rootnode.children[i]->move != NULL
+        && rootnode.children[i]->wins > best_wins) {
+            best_wins = rootnode.children[i]->wins;
+            result_action = rootnode.children[i]->move;
+        }
     }
 
     return result_action;
@@ -491,7 +510,7 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
 
     char **pp = rootnode->untried_moves;
     size_t moves_count = 0;
-    for (i = 0; i < sizeof(me->candidate_cards) / sizeof(me->candidate_cards[0]); i++) {
+    for (i = 0; i < MAX_CARDS_LEN; i++) {
         if (me->candidate_cards[i] != NULL) {
             *pp = malloc(strlen(me->candidate_cards[i])+1);
             strcpy(*pp++, me->candidate_cards[i]);
@@ -499,11 +518,13 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
         }
     }
 
-    for ( ; moves_count < sizeof(rootnode->untried_moves) / sizeof(rootnode->untried_moves[i]);
-    moves_count++) {
-        *pp++ = NULL;
+    //printf("moves_count: %zu\n", moves_count);
+
+    while ((pp - rootnode->untried_moves) < MAX_CARDS_LEN) {
+        *pp = NULL;
+        ++pp;
     }
-    assert((pp - rootnode->untried_moves) == sizeof(rootnode->untried_moves) / sizeof(rootnode->untried_moves[i]));
+    assert((pp - rootnode->untried_moves) == MAX_CARDS_LEN);
 }
 
 void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me)
@@ -565,8 +586,11 @@ size_t get_untried_moves_count(char *arr[], size_t len)
     size_t count = 0;
 
     for (i = 0; i < len; i++) {
-        if (arr[i] != NULL)
+        //printf("arr[%zu]: %s\n", i, arr[i]);
+        if (arr[i] != NULL && strlen(arr[i]) == 2) {
+            //printf("arr[%zu]: %s\n", i, arr[i]);
             ++count;
+        }
     }
 
     return count;
@@ -583,6 +607,26 @@ size_t get_child_nodes_count(struct node *arr[], size_t len)
     }
 
     return count;
+}
+
+void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[])
+{
+    action_node->visits += 1;
+
+    uint32_t win = 1;
+    size_t i;
+    int is_shooting_the_moon = 1;
+    for (i = 0; i < 3; ++i) {
+        if (players[i].deal_score != 0)
+            is_shooting_the_moon = 0;
+        if (cloned_me->deal_score < players[i].deal_score)
+            win = 0;
+    }
+
+    if (is_shooting_the_moon == 1)
+        win = 4;
+
+    action_node->wins += win;
 }
 
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[])
@@ -614,15 +658,27 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
                 }
             }
         }
+
+        // update played_suit based on first played card
+        if (i == 0 && played_suit == 0) {
+            played_suit = (*(pp-1))[1];
+        }
     }
 
     assert((pp - cur_round_cards) == 4);
+
+    if (played_suit == 0) {
+        played_suit = cur_round_cards[0][1];
+    }
+
     // TODO: delete follwoing test code
+    /*
     printf("cur_round_cards: ");
     for (i = 0; i < 4; i++) {
         printf("%s ", cur_round_cards[i]);
     }
     printf("\n");
+    */
 
     size_t hearts_count = 0;
     for (i = 0; i < 4; i++) {
@@ -643,12 +699,11 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
     for (i = 0; i < 4; i++) {
         if (cur_round_cards[i][1] != played_suit)
             continue;
-        if (cur_round_cards[i][0] > max_rank) {
+        if (rankcmp(cur_round_cards[i][0], max_rank) > 0) {
             max_rank = cur_round_cards[i][0];
             winner_index = i;
         }
     }
-    //printf("winner_index: %d, max_rank: %c\n", winner_index, max_rank);
 
     char *winner_name = cloned_player_order[winner_index];
     if (strcmp(winner_name, cloned_me->name) == 0) {
@@ -664,15 +719,79 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
         }
     }
 
+    //printf("me deal_score: %d\n", cloned_me->deal_score);
+
+    //printf("winner_index: %d, winner_name: %s, max_rank: %c\n", winner_index, winner_name, max_rank);
+
+    // adjust cloned_player_order
+    char *last_order_name;
+    while (strcmp(cloned_player_order[0], winner_name) != 0) {
+        last_order_name = strdup(cloned_player_order[3]);
+        for (i = 3; i > 0; --i) {
+            cloned_player_order[i] = cloned_player_order[i-1];
+        }
+        cloned_player_order[0] = strdup(last_order_name);
+    }
+
+    /*
+    printf("cloned_player_order: ");
+    for (i = 0; i < 4; i++) {
+        printf("%s ", cloned_player_order[i]);
+    }
+    printf("\n");
+    */
+
     cloned_me->round_card = "";
     for (i = 0; i < 3; i++)
         cloned_players[i].round_card = "";
 
     // TODO: delete following
+    /*
     printf("me cards_count: %d\t", cloned_me->cards_count);
     for (i = 0; i < 3; i++)
         printf("i: %zu, cards_count: %d\t", i, cloned_players[i].cards_count);
     printf("\n");
+    */
+}
+
+int rankcmp(char a, char b)
+{
+    if (isdigit(a))
+        a = a - '0';
+    else if (a == 'T')
+        a = 10;
+    else if (a == 'J')
+        a = 11;
+    else if (a == 'Q')
+        a = 12;
+    else if (a == 'K')
+        a = 13;
+    else if (a == 'A')
+        a = 14;
+    else
+        a = 0;
+
+    if (isdigit(b))
+        b = b - '0';
+    else if (b == 'T')
+        b = 10;
+    else if (b == 'J')
+        b = 11;
+    else if (b == 'Q')
+        b = 12;
+    else if (b == 'K')
+        b = 13;
+    else if (b == 'A')
+        b = 14;
+    else
+        b = 0;
+
+    if (a > b)
+        return 1;
+    else if (a < b)
+        return -1;
+    else
+        return 0;
 }
 
 char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[])
@@ -698,7 +817,7 @@ char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], 
     }
 
     // TODO: remove following test code
-    printf("suit: %c\n", suit);
+    //printf("suit: %c\n", suit);
 
     return suit;
 }
@@ -708,16 +827,55 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
     if (cloned_me->round_card != NULL && strlen(cloned_me->round_card) > 1)
         return;
 
+    size_t able_to_played_cards_count = 0, i, random_index;
+    char *able_to_played_cards[64];
+    char **pp2able_to_played_cards = able_to_played_cards;
+
+    if (selected_move == NULL) {
+        if (played_suit == 0) {
+            for (i = 0; i < MAX_CARDS_LEN; i++) {
+                if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
+                    ++able_to_played_cards_count;
+                    *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                }
+            }
+        } else {
+            for (i = 0; i < MAX_CARDS_LEN; i++) {
+                if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2
+                && cloned_me->cards[i][1] == played_suit) {
+                    ++able_to_played_cards_count;
+                    *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                }
+            }
+
+            if (able_to_played_cards_count == 0) {
+                for (i = 0; i < MAX_CARDS_LEN; i++) {
+                    if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
+                        ++able_to_played_cards_count;
+                        *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                    }
+                }
+            }
+        }
+        //printf("able_to_played_cards_count: %zu\n", able_to_played_cards_count);
+        random_index = rand() % able_to_played_cards_count;
+        selected_move = strdup(able_to_played_cards[random_index]);
+    }
+
     cloned_me->round_card = strdup(selected_move);
 
     char **pp = cloned_me->cards;
     while (strcmp(selected_move, *pp++) != 0)
         ;
 
+    --pp;
+
     while (*(pp+1) != NULL && strlen(*(pp+1)) > 1) {
         *pp = *(pp+1);
         ++pp;
     }
+
+    *pp = NULL;
 
     cloned_me->cards_count -= 1;
 }
@@ -730,10 +888,18 @@ void pick_card_player(struct player *cur_player, char played_suit)
     char *able_to_played_cards[64];
     char **pp = able_to_played_cards;
     size_t i;
-    for (i = 0; i < MAX_CARDS_LEN; i++) {
-        if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1
-        && cur_player->cards[i][1] == played_suit)
-            *pp++ = strdup(cur_player->cards[i]);
+
+    if (played_suit != 0) {
+        for (i = 0; i < MAX_CARDS_LEN; i++) {
+            if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1
+            && cur_player->cards[i][1] == played_suit)
+                *pp++ = strdup(cur_player->cards[i]);
+        }
+    } else {
+        for (i = 0; i < MAX_CARDS_LEN; i++) {
+            if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1)
+                *pp++ = strdup(cur_player->cards[i]);
+        }
     }
 
     while ((pp - able_to_played_cards) < 64) {
@@ -741,12 +907,14 @@ void pick_card_player(struct player *cur_player, char played_suit)
     }
 
     // TODO: delete following test code
-    printf("able_to_played_cards: ");
+    /*
+    printf("%s able_to_played_cards: ", cur_player->name);
     for (i = 0; i < 64; i++) {
         if (able_to_played_cards[i] != NULL)
             printf("i: %zu, %s ", i, able_to_played_cards[i]);
     }
     printf("\n");
+    */
 
     size_t able_to_played_count = 0;
     pp = able_to_played_cards;
@@ -777,58 +945,73 @@ void pick_card_player(struct player *cur_player, char played_suit)
     while (strcmp(selected, *pp++) != 0)
         ;
 
+    --pp;
+
     while (*(pp+1) != NULL && strlen(*(pp+1)) == 2) {
         *pp = *(pp+1);
         ++pp;
     }
 
+    *pp = NULL;
+
     cur_player->cards_count -= 1;
 }
 
-char *uct_select_child(const struct node *n)
+struct node *uct_select_child(const struct node *n)
 {
-    char *selected;
+    struct node *selected;
     size_t i;
-    double uct_value, best_value;
+    double uct_value, best_value = 0.0;
+    double C = 1.0 / sqrt(2.0);
     for (i = 0; i < sizeof(n->children) / sizeof(n->children[0]); i++) {
         if (n->children[i] == NULL)
             continue;
 
+
         struct node *c = n->children[i];
 
-        uct_value = c->wins / c->visits + sqrt(2 * log(n->visits) / c->visits);
+        // Upper Confidence Bounds formula
+        // UCB = wins / visits + C * sqrt(2 * ln(total_visits) / visits)
+        uct_value = c->wins / c->visits + C * sqrt(2 * log(n->visits) / c->visits);
+
+        //printf("move: %s, wins: %d, visits: %d, uct_value: %f\t", c->move, c->wins, c->visits, uct_value);
 
         if (uct_value > best_value) {
-            selected = c->move;
+            selected = c;
             best_value = uct_value;
         }
     }
+    //printf("\n");
 
-    char *temp = strdup(selected);
-    return temp;
+    return selected;
 }
 
-struct node node_add_child(char *selected_move, struct node *action_node, struct stru_me *me)
+struct node *node_add_child(char *selected_move, struct node *action_node, struct stru_me *me)
 {
-    struct node **child = action_node->children;
-    while (*child++ != NULL)
-        ;
-    assert((child - action_node->children) < MAX_CHILDREN_LEN);
+    size_t child_index = 0;
+    while (action_node->children[child_index] != NULL)
+        ++child_index;
 
-    struct node new_child;
-    init_childnode(&new_child, selected_move, action_node, me);
-
-    *child = &new_child;
+    assert(child_index < MAX_CHILDREN_LEN);
 
     // remove selected_move from rootnode untried_moves
     char **pp = action_node->untried_moves;
     while (strcmp(selected_move, *pp++) != 0)
         ;
 
+    --pp;
+
     while (*(pp+1) != NULL && strlen(*(pp+1)) == 2) {
         *pp = *(pp+1);
         ++pp;
     }
+
+    *pp = NULL;
+
+    struct node *new_child = malloc(sizeof(struct node));
+    init_childnode(new_child, selected_move, action_node, me);
+
+    action_node->children[child_index] = new_child;
 
     return new_child;
 }
@@ -843,6 +1026,13 @@ void init_childnode(struct node *child, char *move, struct node *parent, struct 
     size_t i;
     for (i = 0; i < MAX_CHILDREN_LEN; i++) {
         child->children[i] = NULL;
+    }
+
+    for (i = 0; i < MAX_CARDS_LEN; i++) {
+        if (parent->untried_moves[i] != NULL && strlen(parent->untried_moves[i]) == 2)
+            child->untried_moves[i] = strdup(parent->untried_moves[i]);
+        else
+            child->untried_moves[i] = NULL;
     }
 }
 

@@ -19,9 +19,9 @@ const all_pokers = [
 const me = {
     "player_name": 'me',
     "deal_score": 0,
-    "cards": ['4S', 'JS', '8S', '3S', 'AH', '5H', '3C', '7C', 'TC', 'AC', 'QC', 'KC', "AD"],
+    "cards": ['4S', 'JS', '8S', '3S', '3H', '5H', '3C', '7C', 'TC', 'AC', 'QC', 'KC', "AD"],
     "cards_count": 13,
-    "candidate_cards": ['AC', '7C', 'TC', 'QC', 'KC']
+    "candidate_cards": ['3H', '5H']
 };
 
 const players = [
@@ -29,7 +29,7 @@ const players = [
         "player_name": 'p1',
         "deal_score": 0,
         "cards_count": 12,
-        "round_card": 'QS'
+        "round_card": 'AH'
     },
     {
         "player_name": 'p2',
@@ -40,8 +40,8 @@ const players = [
     {
         "player_name": 'p3',
         "deal_score": 0,
-        "cards_count": 12,
-        "round_card": '4C'
+        "cards_count": 13,
+        "round_card": ''
     }
 ];
 
@@ -60,5 +60,22 @@ const left_cards = all_pokers.filter(value => {
 
 console.log("left_cards: " + left_cards);
 
-const action = mcts(20, me, players, player_order, left_cards);
+/*
+var r = {};
+
+for (var i = 0; i < 50; i++) {
+    const action = mcts(20000, me, players, player_order, left_cards);
+    if (action in r)
+        r[action] += 1;
+    else
+        r[action] = 1;
+}
+
+console.log(r);
+*/
+
+var start = Date.now();
+const action = mcts(20000, me, players, player_order, left_cards);
+console.log(`time spent: ${Date.now() - start}`);
 console.log(action);
+
