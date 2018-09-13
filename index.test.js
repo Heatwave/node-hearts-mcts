@@ -1,18 +1,10 @@
 const mcts = require('./index.js');
 
 const all_pokers = [
-    '2H', '2S', '2C', '2D',
-    '3H', '3S', '3C', '3D',
-    '4H', '4S', '4C', '4D',
-    '5H', '5S', '5C', '5D',
-    '6H', '6S', '6C', '6D',
-    '7H', '7S', '7C', '7D',
-    '8H', '8S', '8C', '8D',
-    '9H', '9S', '9C', '9D',
-    'TH', 'TS', 'TC', 'TD',
-    'JH', 'JS', 'JC', 'JD',
-    'QH', 'QS', 'QC', 'QD',
-    'KH', 'KS', 'KC', 'KD',
+    '2H', '2S', '2C', '2D', '3H', '3S', '3C', '3D', '4H', '4S', '4C', '4D',
+    '5H', '5S', '5C', '5D', '6H', '6S', '6C', '6D', '7H', '7S', '7C', '7D',
+    '8H', '8S', '8C', '8D', '9H', '9S', '9C', '9D', 'TH', 'TS', 'TC', 'TD',
+    'JH', 'JS', 'JC', 'JD', 'QH', 'QS', 'QC', 'QD', 'KH', 'KS', 'KC', 'KD',
     'AH', 'AS', 'AC', 'AD'
 ];
 
@@ -26,22 +18,13 @@ const me = {
 
 const players = [
     {
-        "player_name": 'p1',
-        "deal_score": 0,
-        "cards_count": 4,
-        "round_card": ''
+        "player_name": 'p1', "deal_score": 0, "cards_count": 4, "round_card": ''
     },
     {
-        "player_name": 'p2',
-        "deal_score": 0,
-        "cards_count": 4,
-        "round_card": ''
+        "player_name": 'p2', "deal_score": 0, "cards_count": 4, "round_card": ''
     },
     {
-        "player_name": 'p3',
-        "deal_score": 0,
-        "cards_count": 3,
-        "round_card": '5S'
+        "player_name": 'p3', "deal_score": 0, "cards_count": 3, "round_card": '5S'
     }
 ];
 
@@ -57,8 +40,6 @@ const left_cards = all_pokers.filter(value => {
 
     return true;
 });
-
-console.log("left_cards: " + left_cards);
 
 /*
 var r = {};
