@@ -101,14 +101,16 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
     */
 
     uint32_t best_wins = 0;
-    result_action = rootnode.children[0]->move;
+    result_action = strdup(rootnode.children[0]->move);
     for (i = 0; i < MAX_CHILDREN_LEN; ++i) {
         if (rootnode.children[i] != NULL && rootnode.children[i]->move != NULL
         && rootnode.children[i]->wins > best_wins) {
             best_wins = rootnode.children[i]->wins;
-            result_action = rootnode.children[i]->move;
+            result_action = strdup(rootnode.children[i]->move);
         }
     }
+
+    clean_nodes_mem(&rootnode);
 
     return result_action;
 }
@@ -643,3 +645,18 @@ void init_childnode(struct node *child, char *move, struct node *parent, struct 
     }
 }
 
+void clean_nodes_mem(struct node *rootnode)
+{
+    if (rootnode->move != NULL)
+        free(rootnode->move);
+
+    size_t i;
+
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (rootnode->untried_moves[i] != NULL)
+            free(rootnode->untried_moves[i]);
+
+    for (i = 0; i < MAX_CHILDREN_LEN; ++i)
+        if (rootnode->children[i] != NULL)
+            clean_nodes_mem(rootnode->children[i]);
+}

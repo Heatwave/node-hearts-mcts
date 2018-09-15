@@ -43,6 +43,7 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
 int get_parameter_player_order(napi_env env, napi_value player_order_js_array, char *player_order[]);
 int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char *left_cards[]);
 
+void clean_mem(struct stru_me *me, struct player players[], char *player_order[], char *left_cards[]);
 
 char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *player_order[], char *left_cards[]);
 
@@ -71,6 +72,8 @@ struct node *uct_select_child(const struct node *n);
 struct node *node_add_child(char *selected_move, struct node *action_node, struct stru_me *cloned_me);
 
 void init_childnode(struct node *child, char *move, struct node *parent, struct stru_me *me);
+
+void clean_nodes_mem(struct node *rootnode);
 
 #endif
 

@@ -53,6 +53,10 @@ napi_value uct(napi_env env, napi_callback_info info)
     status = napi_create_string_utf8(env, action, NAPI_AUTO_LENGTH, &action_js);
     if (status != napi_ok) return NULL;
 
+    clean_mem(&me, players, player_order, left_cards);
+
+    free(action);
+
     return action_js;
 }
 
@@ -266,6 +270,43 @@ int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char 
     }
 
     return 0;
+}
+
+void clean_mem(struct stru_me *me, struct player players[], char *player_order[], char *left_cards[])
+{
+    free(me->name);
+
+    if (me->round_card != NULL)
+        free(me->round_card);
+
+    size_t i, j;
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (me->cards[i] != NULL)
+            free(me->cards[i]);
+
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (me->candidate_cards[i] != NULL)
+            free(me->candidate_cards[i]);
+
+    for (i = 0; i < 3; ++i) {
+        if (players[i].name != NULL)
+            free(players[i].name);
+
+        if (players[i].round_card != NULL)
+            free(players[i].round_card);
+
+        for (j = 0; j < MAX_CARDS_LEN; ++j)
+            if (players[i].cards[j] != NULL)
+            free(players[i].cards[j]);
+    }
+
+    for (i = 0; i < 3; ++i)
+        if (player_order[i] != NULL)
+            free(player_order[i]);
+
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (left_cards[i] != NULL)
+            free(left_cards[i]);
 }
 
 napi_value Init(napi_env env, napi_value exports)
