@@ -62,4 +62,6 @@ typings/
 
 build/
 
+# editors
 *.swp
+.vscode
