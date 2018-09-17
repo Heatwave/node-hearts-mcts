@@ -269,26 +269,19 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
 {
     action_node->visits += 1;
 
-    size_t ranking = 0;
     double win = 0.0;
     size_t i;
     int is_shooting_the_moon = 1;
     for (i = 0; i < 3; ++i) {
         if (players[i].deal_score != 0)
             is_shooting_the_moon = 0;
-        if (cloned_me->deal_score < players[i].deal_score)
-            ++ranking;
     }
 
-    if (ranking == 0)
-        win = 1;
-    else if (ranking == 1)
-        win = 0.75;
-    else if (ranking == 2)
-        win = 0.25;
-
     if (is_shooting_the_moon == 1)
-        win = 1;
+        win = 2;
+    else {
+        win = 1 + ((double)cloned_me->deal_score / 104.0);
+    }
 
     action_node->wins += win;
 }
