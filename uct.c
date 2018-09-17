@@ -95,17 +95,17 @@ char *do_uct(int32_t itermax, struct stru_me me, struct player players[], char *
     /*
     for (i = 0; i < MAX_CHILDREN_LEN; i++) {
         if (rootnode.children[i] != NULL)
-            printf("move: %s, wins: %d, visits: %d\t", rootnode.children[i]->move, rootnode.children[i]->wins, rootnode.children[i]->visits);
+            printf("move: %s, wins: %lf, visits: %d\t", rootnode.children[i]->move, rootnode.children[i]->wins, rootnode.children[i]->visits);
     }
     printf("\n");
     */
 
-    uint32_t best_wins = 0;
+    size_t best_visits = 0;
     result_action = strdup(rootnode.children[0]->move);
     for (i = 0; i < MAX_CHILDREN_LEN; ++i) {
         if (rootnode.children[i] != NULL && rootnode.children[i]->move != NULL
-        && rootnode.children[i]->wins > best_wins) {
-            best_wins = rootnode.children[i]->wins;
+        && rootnode.children[i]->visits > best_visits) {
+            best_visits = rootnode.children[i]->visits;
             result_action = strdup(rootnode.children[i]->move);
         }
     }
@@ -165,7 +165,7 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
         rootnode->children[i] = NULL;
     }
 
-    rootnode->wins = 0;
+    rootnode->wins = 0.0;
     rootnode->visits = 0;
 
     char **pp = rootnode->untried_moves;
@@ -269,18 +269,26 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
 {
     action_node->visits += 1;
 
-    uint32_t win = 1;
+    size_t ranking = 0;
+    double win = 0.0;
     size_t i;
     int is_shooting_the_moon = 1;
     for (i = 0; i < 3; ++i) {
         if (players[i].deal_score != 0)
             is_shooting_the_moon = 0;
         if (cloned_me->deal_score < players[i].deal_score)
-            win = 0;
+            ++ranking;
     }
 
+    if (ranking == 0)
+        win = 1;
+    else if (ranking == 1)
+        win = 0.75;
+    else if (ranking == 2)
+        win = 0.25;
+
     if (is_shooting_the_moon == 1)
-        win = 2;
+        win = 1;
 
     action_node->wins += win;
 }
@@ -629,7 +637,7 @@ void init_childnode(struct node *child, char *move, struct node *parent, struct 
 {
     child->move = strdup(move);
     child->parent = parent;
-    child->wins = 0;
+    child->wins = 0.0;
     child->visits = 0;
 
     size_t i;

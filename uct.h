@@ -7,6 +7,8 @@
 #define MAX_HAND_CARDS_LEN 32
 #define MAX_CHILDREN_LEN 16
 
+#define NDEBUG
+
 struct stru_me {
     char *name;
     int32_t deal_score;
@@ -28,7 +30,7 @@ struct node {
     char *move;
     struct node *parent;
     struct node *children[MAX_CHILDREN_LEN];
-    uint32_t wins;
+    double wins;
     uint32_t visits;
     char *untried_moves[MAX_CARDS_LEN];
 };
