@@ -65,3 +65,5 @@ build/
 # editors
 *.swp
 .vscode
+
+index.single.*.test.js
