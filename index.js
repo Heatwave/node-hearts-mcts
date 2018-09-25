@@ -1,3 +1,8 @@
 const binding = require('./build/Release/uct');
 
-module.exports = binding.uct;
+const mcts = {
+    uct: binding.uct,
+    simulation: binding.simulation
+};
+
+module.exports = mcts;

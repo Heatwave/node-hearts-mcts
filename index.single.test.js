@@ -43,6 +43,6 @@ const left_cards = all_pokers.filter(value => {
 });
 
 var start = Date.now();
-const action = mcts(15000, me, players, player_order, left_cards);
+const action = mcts.uct(15000, me, players, player_order, left_cards);
 console.log(`time spent: ${Date.now() - start}`);
 console.log('action:' + action);

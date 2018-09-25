@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "uct.h"
+#include "simulator.h"
 
 // entry function
 napi_value uct(napi_env env, napi_callback_info info)
@@ -365,6 +366,18 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
             free(left_cards[i]);
 }
 
+napi_value simulation(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    double shooting_rate = 0.5;
+    napi_value shooting_rate_js;
+
+    status = napi_create_double(env, shooting_rate, &shooting_rate_js);
+    if (status != napi_ok) return NULL;
+
+    return shooting_rate_js;
+}
+
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_status status;
@@ -374,6 +387,12 @@ napi_value Init(napi_env env, napi_value exports)
     if (status != napi_ok) return NULL;
 
     status = napi_set_named_property(env, exports, "uct", func);
+    if (status != napi_ok) return NULL;
+
+    status = napi_create_function(env, NULL, 0, simulation, NULL, &func);
+    if (status != napi_ok) return NULL;
+
+    status = napi_set_named_property(env, exports, "simulation", func);
     if (status != napi_ok) return NULL;
 
     return exports;
