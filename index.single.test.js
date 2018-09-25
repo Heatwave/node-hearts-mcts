@@ -10,25 +10,26 @@ const all_pokers = [
 
 const me = {
     "player_name": 'me',
-    "deal_score": -17,
-    "cards": ['5C', '9C', 'TC', '5H', '8H', 'TH'],
-    "cards_count": 6,
-    "candidate_cards": ['5H', '8H', 'TH']
+    "deal_score": 0,
+    "cards": ["KS", "QS", "TS", "8S", "3S", "9H", "5H", "2H", "8C", "5C", "9D", "7D", "3D"],
+    "cards_count": 13,
+    "candidate_cards": ['8C', '5C'],
+    "score_cards": []
 };
 
 const players = [
     {
-        "player_name": 'p1', "deal_score": -16, "cards_count": 5, "round_card": '9H'
+        "player_name": 'p1', "deal_score": 0, "cards_count": 12, "round_card": '2C', "score_cards": []
     },
     {
-        "player_name": 'p2', "deal_score": 0, "cards_count": 5, "round_card": '3H'
+        "player_name": 'p2', "deal_score": 0, "cards_count": 12, "round_card": '6C', "score_cards": []
     },
     {
-        "player_name": 'p3', "deal_score": 0, "cards_count": 6, "round_card": ''
+        "player_name": 'p3', "deal_score": 0, "cards_count": 12, "round_card": '9C', "score_cards": []
     }
 ];
 
-const player_order = ['p1', 'p2', 'me', 'p3'];
+const player_order = ['p1', 'me', 'p2', 'p3'];
 
 const left_cards = all_pokers.filter(value => {
     if (me.cards.indexOf(value) >= 0)
@@ -42,7 +43,6 @@ const left_cards = all_pokers.filter(value => {
 });
 
 var start = Date.now();
-const action = mcts(10000, me, players, player_order, left_cards);
+const action = mcts(15000, me, players, player_order, left_cards);
 console.log(`time spent: ${Date.now() - start}`);
 console.log('action:' + action);
-

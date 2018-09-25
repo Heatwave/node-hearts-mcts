@@ -4,6 +4,8 @@ const assert = require('assert');
 
 const mcts = require('./index.js');
 
+const MCTS_ITERMAX = 15000;
+
 function cloneObj(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
@@ -68,6 +70,7 @@ function updateCandidateCards(p, suit, isHeartBroken) {
             if (p.candidate_cards.length === 0)
                 p.candidate_cards = cloneObj(p.cards);
         }
+        return;
     }
 
     let candidates = p.cards.filter(value => {
@@ -115,7 +118,7 @@ function pickCardMe(me, players, order) {
     if (me.candidate_cards.length === 1)
         action = me.candidate_cards[0];
     else {
-        action = mcts(20000, me, players, order, me.left_cards);
+        action = mcts(MCTS_ITERMAX, me, players, order, me.left_cards);
         assert(action.length === 2);
     }
 
@@ -299,6 +302,7 @@ function start() {
 
     let roundCards = ['2C'];
 
+    updateLeftCards(me, ['2C']);
     while (roundCount-- > 0) {
         player_order.forEach(name => {
             let player = name2playersMapping[name];
@@ -310,6 +314,7 @@ function start() {
             else
                 pickCardPlayer(player);
             roundCards.push(player.round_card);
+            updateLeftCards(me, roundCards);
 
             if (playedSuit === '')
                 playedSuit = player.round_card[1];
@@ -348,8 +353,17 @@ function start() {
     }
 
     me.deal_score = getScoreFromCards(me.score_cards);
+    for (const p of players) {
+        p.deal_score = getScoreFromCards(p.score_cards);
+    }
 
-    console.log(me.deal_score);
+    let scores = {
+        'me': me.deal_score
+    };
+    for (const p of players) {
+        scores[p.player_name] = p.deal_score;
+    }
+    console.log(scores);
 }
 
 let i = 100;
