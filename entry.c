@@ -48,7 +48,7 @@ napi_value uct(napi_env env, napi_callback_info info)
 
     char *action;
 
-    action = do_uct(itermax, me, players, player_order, left_cards);
+    action = do_uct(itermax, &me, players, player_order, left_cards);
 
     status = napi_create_string_utf8(env, action, NAPI_AUTO_LENGTH, &action_js);
     if (status != napi_ok) return NULL;
@@ -142,6 +142,29 @@ int get_parameter_me(napi_env env, napi_value me_js_obj, struct stru_me *me)
         me->candidate_cards[i] = NULL;
     }
 
+    napi_value score_cards_js;
+    status = napi_get_named_property(env, me_js_obj, "score_cards", &score_cards_js);
+    if (status != napi_ok) return 1;
+
+    uint32_t score_cards_len;
+    status = napi_get_array_length(env, score_cards_js, &score_cards_len);
+    if (status != napi_ok) return 1;
+
+    for (i = 0; i < score_cards_len; ++i) {
+        status = napi_get_element(env, score_cards_js, i, &card_str);
+        if (status != napi_ok) return 1;
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        if (status != napi_ok) return 1;
+
+        me->score_cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, me->score_cards[i], card_str_len+1, 0);
+        if (status != napi_ok) return 1;
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        me->score_cards[i] = NULL;
+
     return 0;
 }
 
@@ -217,6 +240,31 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
     }
 
 
+    napi_value card_str;
+    napi_value score_cards_js;
+    size_t card_str_len;
+    status = napi_get_named_property(env, player_js_obj, "score_cards", &score_cards_js);
+    if (status != napi_ok) return 1;
+
+    uint32_t score_cards_len;
+    status = napi_get_array_length(env, score_cards_js, &score_cards_len);
+    if (status != napi_ok) return 1;
+
+    for (i = 0; i < score_cards_len; ++i) {
+        status = napi_get_element(env, score_cards_js, i, &card_str);
+        if (status != napi_ok) return 1;
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        if (status != napi_ok) return 1;
+
+        player->score_cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, player->score_cards[i], card_str_len+1, 0);
+        if (status != napi_ok) return 1;
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        player->score_cards[i] = NULL;
+
     return 0;
 }
 
@@ -288,6 +336,10 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
         if (me->candidate_cards[i] != NULL)
             free(me->candidate_cards[i]);
 
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (me->score_cards[i] != NULL)
+            free(me->score_cards[i]);
+
     for (i = 0; i < 3; ++i) {
         if (players[i].name != NULL)
             free(players[i].name);
@@ -297,7 +349,11 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
 
         for (j = 0; j < MAX_CARDS_LEN; ++j)
             if (players[i].cards[j] != NULL)
-            free(players[i].cards[j]);
+                free(players[i].cards[j]);
+
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
+            if (players[i].score_cards[j] != NULL)
+                free(players[i].score_cards[j]);
     }
 
     for (i = 0; i < 3; ++i)
