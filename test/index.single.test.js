@@ -1,4 +1,4 @@
-const mcts = require('./index.js');
+const mcts = require('../index.js');
 
 const all_pokers = [
     '2H', '2S', '2C', '2D', '3H', '3S', '3C', '3D', '4H', '4S', '4C', '4D',

@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const mcts = require('./index.js');
+const mcts = require('../index.js');
 
 const MCTS_ITERMAX = 15000;
 
