@@ -1,9 +1,9 @@
 #include <node_api.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
-#include "uct.h"
-#include "simulator.h"
+#include "mcts.h"
 
 // entry function
 napi_value uct(napi_env env, napi_callback_info info)
@@ -139,7 +139,7 @@ int get_parameter_me(napi_env env, napi_value me_js_obj, struct stru_me *me)
         if (status != napi_ok) return 1;
     }
 
-    for ( ; i < sizeof(me->candidate_cards) / sizeof(me->candidate_cards[0]); i++) {
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i) {
         me->candidate_cards[i] = NULL;
     }
 
@@ -333,7 +333,7 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
         if (me->cards[i] != NULL)
             free(me->cards[i]);
 
-    for (i = 0; i < MAX_CARDS_LEN; ++i)
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
         if (me->candidate_cards[i] != NULL)
             free(me->candidate_cards[i]);
 
@@ -369,7 +369,81 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
 napi_value simulation(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    double shooting_rate = 0.5;
+    int is_call_success;
+
+    struct stru_me *me = malloc(sizeof(struct stru_me));
+    me->name = "me";
+    me->deal_score = 0;
+    me->cards_count = 13;
+    me->round_card = NULL;
+
+    char *left_cards[MAX_CARDS_LEN];
+
+    napi_value argv[2];
+    size_t argc = 2;
+
+    // initialize random seed
+    srand(time(NULL));
+
+    napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+    if (argc != 2)
+    {
+        napi_throw_error(env, "EINVAL", "arguments number shoule be 2");
+        return NULL;
+    }
+
+    napi_value cards_js_arr = argv[0];
+    napi_value left_cards_js_arr = argv[1];
+
+
+    uint32_t i, cards_len;
+    status = napi_get_array_length(env, cards_js_arr, &cards_len);
+    if (status != napi_ok) return NULL;
+
+    napi_value card_str;
+    size_t card_str_len;
+    for (i = 0; i < cards_len; i++) {
+        status = napi_get_element(env, cards_js_arr, i, &card_str);
+        if (status != napi_ok) return NULL;
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        if (status != napi_ok) return NULL;
+
+        me->cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, me->cards[i], card_str_len+1, 0);
+        if (status != napi_ok) return NULL;
+    }
+
+    for ( ; i < MAX_CARDS_LEN; ++i) {
+        me->cards[i] = NULL;
+    }
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
+        me->candidate_cards[i] = NULL;
+    }
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
+        me->score_cards[i] = NULL;
+    }
+
+    is_call_success = get_parameter_left_cards(env, left_cards_js_arr, left_cards);
+
+    // printf("me->cards: ");
+    // for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
+    //     if (me->cards[i] != NULL)
+    //         printf("%s ", me->cards[i]);
+    // }
+    // printf("\n");
+
+    // printf("left_cards: ");
+    // for (i = 0; i < MAX_CARDS_LEN; ++i) {
+    //     if (left_cards[i] != NULL)
+    //         printf("%s ", left_cards[i]);
+    // }
+    // printf("\n");
+
+
+    double shooting_rate = do_simulate(me, left_cards);
     napi_value shooting_rate_js;
 
     status = napi_create_double(env, shooting_rate, &shooting_rate_js);

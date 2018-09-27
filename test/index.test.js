@@ -357,13 +357,16 @@ function start() {
         p.deal_score = getScoreFromCards(p.score_cards);
     }
 
+    let me_rank = 4;
     let scores = {
         'me': me.deal_score
     };
     for (const p of players) {
         scores[p.player_name] = p.deal_score;
+        if (me.deal_score > p.deal_score)
+            me_rank -= 1;
     }
-    console.log(scores);
+    console.log(scores, me_rank);
 }
 
 let i = 100;
