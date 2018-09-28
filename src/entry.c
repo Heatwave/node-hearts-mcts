@@ -428,20 +428,6 @@ napi_value simulation(napi_env env, napi_callback_info info)
 
     is_call_success = get_parameter_left_cards(env, left_cards_js_arr, left_cards);
 
-    // printf("me->cards: ");
-    // for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
-    //     if (me->cards[i] != NULL)
-    //         printf("%s ", me->cards[i]);
-    // }
-    // printf("\n");
-
-    // printf("left_cards: ");
-    // for (i = 0; i < MAX_CARDS_LEN; ++i) {
-    //     if (left_cards[i] != NULL)
-    //         printf("%s ", left_cards[i]);
-    // }
-    // printf("\n");
-
 
     double shooting_rate = do_simulate(me, left_cards);
     napi_value shooting_rate_js;

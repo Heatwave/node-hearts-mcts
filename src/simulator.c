@@ -4,8 +4,7 @@
 
 #include "mcts.h"
 
-#define ITER_MAX 1
-// #define ITER_MAX 20000
+#define ITER_MAX 60000
 
 double do_simulate(struct stru_me *me, char *left_cards[])
 {
@@ -15,7 +14,7 @@ double do_simulate(struct stru_me *me, char *left_cards[])
     char *play_order[4];
     init_play_order(play_order, me, players);
 
-    size_t iter, i, j;
+    size_t iter, i;
     double shooting_count = 0.0;
     struct stru_me *cloned_me = malloc(sizeof(struct stru_me));
     struct player cloned_players[3];
@@ -45,39 +44,17 @@ double do_simulate(struct stru_me *me, char *left_cards[])
             }
         }
 
-        for (i = 0; i < 3; ++i) {
-            struct player *p = &cloned_players[i];
-            printf("player %s cards:\t", p->name);
-            for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
-                if (p->cards[j] != NULL)
-                    printf("%s ", p->cards[j]);
-            printf("\n");
-        }
-
         while (cloned_me->cards_count > 0) {
             do_move(NULL, cloned_me, cloned_players, play_order);
-            printf("cards_count: %d\n", cloned_me->cards_count);
         }
 
-        printf("me score_cards:\t");
-        for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
-            if (cloned_me->score_cards[i] != NULL)
-                printf("%s ", cloned_me->score_cards[i]);
-        printf("\n");
+        update_score_based_on_score_cards(cloned_me, cloned_players);
 
-        for (i = 0; i < 3; ++i) {
-            printf("player %s score_cards:\t", players[i].name);
-            for (j = 0; j < MAX_HAND_CARDS_LEN; ++j) {
-                if (players[i].score_cards[j] != NULL)
-                    printf("%s ", players[i].score_cards[j]);
-            }
-            printf("\n");
-        }
-
-        update_score_based_on_score_cards(cloned_me, players);
-
-        printf("%d\n", cloned_me->deal_score);
+        if (cloned_me->deal_score > 0)
+            shooting_count += 1.0;
     }
+
+    // printf("shooting_count: %f\n", shooting_count);
 
     return shooting_count / (double)(ITER_MAX);
 }
@@ -112,11 +89,6 @@ void init_play_order(char *order[], struct stru_me *me, struct player players[])
         else
             order[i] = strdup((p++)->name);
     }
-
-    // for (i = 0; i < 4; ++i) {
-    //     printf("%s ", order[i]);
-    // }
-    // printf("\n");
 }
 
 void reset_play_order_on_start(char *order[], struct stru_me *me, struct player players[])
@@ -153,12 +125,6 @@ void reset_play_order_on_start(char *order[], struct stru_me *me, struct player 
         }
         order[0] = strdup(last_order_name);
     }
-
-    // printf("order:\t");
-    // for (i = 0; i < 4; ++i) {
-    //     printf("%s ", order[i]);
-    // }
-    // printf("\n");
 }
 
 void remove_card_from_cards(char *cards[], char *card)
