@@ -31,6 +31,9 @@ wiki: https://en.wikipedia.org/wiki/Hearts
 ## TODO
 
 1. Use Monte Carlo simulation to rollout games to get the Shooting the Moon rate, to adjust passed cards, exposed card and MCTS Shooting the Moon 'wins'.
+1. Add the passed cards to other players' cards, so we can know what cards of opponent has.
+1. Add exposed card.
+1. Add Hearts broken.
 
 ## References
 
