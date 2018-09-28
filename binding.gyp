@@ -3,8 +3,8 @@
         {
             "target_name": "uct",
             "sources": [
-                "src/uct.h",
-                "src/simulator.h",
+                "src/mcts.h",
+                "src/simulator.c",
                 "src/entry.c",
                 "src/uct.c"
             ]

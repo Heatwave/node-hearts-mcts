@@ -4,7 +4,7 @@
 #include <node_api.h>
 
 #define MAX_CARDS_LEN 64
-#define MAX_HAND_CARDS_LEN 32
+#define MAX_HAND_CARDS_LEN 16
 #define MAX_CHILDREN_LEN 16
 
 // #define NDEBUG
@@ -15,7 +15,7 @@ struct stru_me {
     int32_t cards_count;
     char *round_card;
     char *cards[MAX_CARDS_LEN];
-    char *candidate_cards[MAX_CARDS_LEN];
+    char *candidate_cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
 };
 
@@ -80,5 +80,14 @@ struct node *node_add_child(char *selected_move, struct node *action_node, struc
 void init_childnode(struct node *child, char *move, struct node *parent, struct stru_me *me);
 
 void clean_nodes_mem(struct node *rootnode);
+
+
+napi_value simulation(napi_env env, napi_callback_info info);
+
+double do_simulate(struct stru_me *me, char *left_cards[]);
+void init_players(struct player players[], size_t players_len);
+void init_play_order(char *order[], struct stru_me *me, struct player players[]);
+void reset_play_order_on_start(char *order[], struct stru_me *me, struct player players[]);
+void remove_card_from_cards(char *cards[], char *card);
 
 #endif

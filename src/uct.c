@@ -5,7 +5,7 @@
 #include <math.h>
 #include <ctype.h>
 
-#include "uct.h"
+#include "mcts.h"
 
 
 char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char* left_cards[])
@@ -171,7 +171,7 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
 
     char **pp = rootnode->untried_moves;
     size_t moves_count = 0;
-    for (i = 0; i < MAX_CARDS_LEN; i++) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
         if (me->candidate_cards[i] != NULL) {
             *pp = malloc(strlen(me->candidate_cards[i])+1);
             strcpy(*pp++, me->candidate_cards[i]);
@@ -205,7 +205,7 @@ void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me)
             cloned_me->cards[i] = NULL;
     }
 
-    for (i = 0; i < MAX_CARDS_LEN; i++) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
         if (ori_me->candidate_cards[i] != NULL)
             cloned_me->candidate_cards[i] = strdup(ori_me->candidate_cards[i]);
         else
@@ -367,7 +367,6 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
 
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[])
 {
-    // no method to know the passed array size, so we assume the order count is 4
     size_t order_count = 4;
 
     char played_suit;
@@ -664,7 +663,7 @@ void update_score_cards(char *score_cards[], char *cur_round_cards[])
             while (j < 4 && cur_round_cards[j][1] != 'H' && strcmp(cur_round_cards[j], "QS") != 0 && strcmp(cur_round_cards[j], "TC") != 0)
                 ++j;
             if (j < 4) {
-                score_cards[i] = cur_round_cards[j++];
+                score_cards[i] = strdup(cur_round_cards[j++]);
             }
         }
     }
