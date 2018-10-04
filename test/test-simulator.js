@@ -13,9 +13,9 @@ const all_pokers = [
 ];
 
 const me = {
-    "player_name": 'me',
+    "player_name": 'P1001',
     "deal_score": 0,
-    "cards": ["AS", "KS", "QS", "7S", "6H", "KC", "6C", "4C", "2C", "AD", "8D", "6D", "4D"],
+    "cards": ["TS", "KS", "9S", "6S", "2S", "JH", "7H", "QC", "TC", "9C", "5C", "JD", "6D"],
     "cards_count": 13,
     "candidate_cards": [],
     "score_cards": [],

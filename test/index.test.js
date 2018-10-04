@@ -118,7 +118,7 @@ function pickCardMe(me, players, order) {
     if (me.candidate_cards.length === 1)
         action = me.candidate_cards[0];
     else {
-        action = mcts.uct(MCTS_ITERMAX, me, players, order, me.left_cards);
+        action = mcts.uct(MCTS_ITERMAX, me, players, order, me.left_cards, 0);
         assert(action.length === 2);
     }
 
@@ -367,9 +367,14 @@ function start() {
             me_rank -= 1;
     }
     console.log(scores, me_rank);
+    return me_rank;
 }
 
 let i = 100;
+let rank = 4;
+let result = [0, 0, 0, 0];
 while (--i) {
-    start();
+    rank = start();
+    result[rank-1]++;
 }
+console.log(result);
