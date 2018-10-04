@@ -52,7 +52,12 @@ double do_simulate(struct stru_me *me, char *left_cards[])
 
         if (cloned_me->deal_score > 0)
             shooting_count += 1.0;
+
+        clean_cloned_me(cloned_me);
+        clean_cloned_players(cloned_players);
     }
+
+    free(cloned_me);
 
     // printf("shooting_count: %f\n", shooting_count);
 
@@ -120,10 +125,13 @@ void reset_play_order_on_start(char *order[], struct stru_me *me, struct player 
     char *last_order_name;
     while (strcmp(order[0], first_player_name) != 0) {
         last_order_name = strdup(order[3]);
+        free(order[3]);
         for (i = 3; i > 0; --i) {
             order[i] = order[i-1];
         }
         order[0] = strdup(last_order_name);
+
+        free(last_order_name);
     }
 }
 

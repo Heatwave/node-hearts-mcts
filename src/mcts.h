@@ -49,7 +49,7 @@ int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char 
 
 void clean_mem(struct stru_me *me, struct player players[], char *player_order[], char *left_cards[]);
 
-char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char *left_cards[]);
+char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char *left_cards[], int has_chance_to_shooting);
 
 void shuffle_left_cards(char **left_cards);
 void fisher_yates(char **arr, size_t len);
@@ -65,7 +65,7 @@ size_t get_untried_moves_count(char *untried_moves[], size_t len);
 size_t get_child_nodes_count(struct node *arr[], size_t len);
 
 void update_score_based_on_score_cards(struct stru_me *cloned_me, struct player players[]);
-void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[]);
+void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[], int has_chance_to_shooting);
 
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
 int rankcmp(char a, char b);
@@ -89,5 +89,7 @@ void init_players(struct player players[], size_t players_len);
 void init_play_order(char *order[], struct stru_me *me, struct player players[]);
 void reset_play_order_on_start(char *order[], struct stru_me *me, struct player players[]);
 void remove_card_from_cards(char *cards[], char *card);
+void clean_cloned_me(struct stru_me *cloned_me);
+void clean_cloned_players(struct player players[]);
 
 #endif

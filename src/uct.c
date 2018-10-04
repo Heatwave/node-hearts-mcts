@@ -8,7 +8,7 @@
 #include "mcts.h"
 
 
-char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char* left_cards[])
+char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char* left_cards[], int has_chance_to_shooting)
 {
     int32_t i;
 
@@ -88,9 +88,12 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
         // Backpropagate
         update_score_based_on_score_cards(&cloned_me, cloned_players);
         while (action_node != NULL) {
-            update_node_with_result(action_node, &cloned_me, cloned_players);
+            update_node_with_result(action_node, &cloned_me, cloned_players, has_chance_to_shooting);
             action_node = action_node->parent;
         }
+
+        clean_cloned_me(&cloned_me);
+        clean_cloned_players(cloned_players);
     }
 
     /*
@@ -192,10 +195,7 @@ void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me)
     cloned_me->deal_score = ori_me->deal_score;
     cloned_me->cards_count = ori_me->cards_count;
 
-    if (ori_me->round_card == NULL)
-        cloned_me->round_card = NULL;
-    else
-        cloned_me->round_card = strdup(ori_me->round_card);
+    cloned_me->round_card = NULL;
 
     size_t i;
     for (i = 0; i < MAX_CARDS_LEN; i++) {
@@ -337,7 +337,7 @@ void update_score_based_on_score_cards(struct stru_me *cloned_me, struct player 
     }
 }
 
-void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[])
+void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[], int has_chance_to_shooting)
 {
     action_node->visits += 1;
 
@@ -355,7 +355,10 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
     }
 
     if (is_me_shooting_the_moon == 1) {
-        win = 2;
+        if (has_chance_to_shooting == 1)
+            win = 2;
+        else
+            win = 1;
     } else if (is_others_shooting_the_moon == 1) {
         win = 0.1;
     } else {
@@ -759,4 +762,44 @@ void clean_nodes_mem(struct node *rootnode)
     for (i = 0; i < MAX_CHILDREN_LEN; ++i)
         if (rootnode->children[i] != NULL)
             clean_nodes_mem(rootnode->children[i]);
+}
+
+void clean_cloned_me(struct stru_me *cloned_me)
+{
+    if (cloned_me->name != NULL)
+        free(cloned_me->name);
+
+    cloned_me->round_card = NULL;
+
+    size_t i;
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (cloned_me->cards[i] != NULL)
+            free(cloned_me->cards[i]);
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (cloned_me->candidate_cards[i] != NULL)
+            free(cloned_me->candidate_cards[i]);
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (cloned_me->score_cards[i] != NULL)
+            free(cloned_me->score_cards[i]);
+}
+
+void clean_cloned_players(struct player players[])
+{
+    size_t i, j;
+    for (i = 0; i < 3; ++i) {
+        struct player *p = &players[i];
+
+        if (p->name != NULL)
+            free(p->name);
+
+        for (j = 0; j < MAX_CARDS_LEN; ++j)
+            if (p->cards[j] != NULL)
+                free(p->cards[j]);
+
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
+            if (p->score_cards[j] != NULL)
+                free(p->score_cards[j]);
+    }
 }
