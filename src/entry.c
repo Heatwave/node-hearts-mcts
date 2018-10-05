@@ -439,6 +439,15 @@ napi_value simulation(napi_env env, napi_callback_info info)
     status = napi_create_double(env, shooting_rate, &shooting_rate_js);
     if (status != napi_ok) return NULL;
 
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (me->cards[i] != NULL)
+            free(me->cards[i]);
+    free(me);
+
+    for (i = 0; i < MAX_CARDS_LEN; ++i)
+        if (left_cards[i] != NULL)
+            free(left_cards[i]);
+
     return shooting_rate_js;
 }
 

@@ -30,14 +30,14 @@ double do_simulate(struct stru_me *me, char *left_cards[])
         char *first_player_name = play_order[0];
 
         if (strcmp(first_player_name, cloned_me->name) == 0) {
-            cloned_me->round_card = "2C";
+            cloned_me->round_card = strdup("2C");
             cloned_me->cards_count = 12;
             remove_card_from_cards(cloned_me->cards, "2C");
         } else {
             for (i = 0; i < 3; ++i) {
                 struct player *p = &cloned_players[i];
                 if (strcmp(first_player_name, p->name) == 0) {
-                    p->round_card = "2C";
+                    p->round_card = strdup("2C");
                     p->cards_count = 12;
                     remove_card_from_cards(p->cards, "2C");
                 }
@@ -58,6 +58,9 @@ double do_simulate(struct stru_me *me, char *left_cards[])
     }
 
     free(cloned_me);
+    for (i = 0; i < 4; ++i)
+        if (play_order[i] != NULL)
+            free(play_order[i]);
 
     // printf("shooting_count: %f\n", shooting_count);
 

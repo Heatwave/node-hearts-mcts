@@ -10,39 +10,47 @@ const all_pokers = [
 
 const me = {
     "player_name": 'me',
-    "deal_score": 0,
-    "cards": ["KS", "QS", "TS", "8S", "3S", "9H", "5H", "2H", "8C", "5C", "9D", "7D", "3D"],
-    "cards_count": 13,
-    "candidate_cards": ['8C', '5C'],
-    "score_cards": []
+    "deal_score": -14,
+    "cards": ["2D", "9D", "TD", "4S", "8S", "QS"],
+    "cards_count": 6,
+    "candidate_cards": ["2D", "9D", "TD", "4S", "8S", "QS"],
+    "score_cards": ["TC", "2H", '6H', '7H', '8H', '9H', 'TH', 'AH']
 };
 
 const players = [
     {
-        "player_name": 'p1', "deal_score": 0, "cards_count": 12, "round_card": '2C', "score_cards": []
+        "player_name": 'p1', "deal_score": -1, "cards_count": 5, "round_card": '3H', "score_cards": ["KH"]
     },
     {
-        "player_name": 'p2', "deal_score": 0, "cards_count": 12, "round_card": '6C', "score_cards": []
+        "player_name": 'p2', "deal_score": 0, "cards_count": 6, "round_card": '', "score_cards": []
     },
     {
-        "player_name": 'p3', "deal_score": 0, "cards_count": 12, "round_card": '9C', "score_cards": []
+        "player_name": 'p3', "deal_score": 0, "cards_count": 6, "round_card": '', "score_cards": []
     }
 ];
 
 const player_order = ['p1', 'me', 'p2', 'p3'];
 
-const left_cards = all_pokers.filter(value => {
-    if (me.cards.indexOf(value) >= 0)
-        return false;
-    for (p of players) {
-        if (value === p.round_card)
-            return false;
-    }
+let left_cards = [
+    '3C', '3D', '4H', '4C', '4D', '5H', '5D', '6D', '7D', '8D', '9C', 'JH', 'JC', 'JD', 'QH', 'QC', 'QD'
+];
 
-    return true;
-});
+// left_cards = left_cards.filter(value => {
+//     if (me.cards.indexOf(value) >= 0)
+//         return false;
+//     if (me.score_cards.indexOf(value) !== -1)
+//         return false;
+//     for (p of players) {
+//         if (value === p.round_card)
+//             return false;
+//         if (p.score_cards.indexOf(value) !== -1)
+//             return false;
+//     }
+
+//     return true;
+// });
 
 var start = Date.now();
-const action = mcts.uct(15000, me, players, player_order, left_cards);
+const action = mcts.uct(20000, me, players, player_order, left_cards, 0);
 console.log(`time spent: ${Date.now() - start}`);
 console.log('action:' + action);

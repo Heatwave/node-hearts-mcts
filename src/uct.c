@@ -8,6 +8,9 @@
 #include "mcts.h"
 
 
+static int show_detail = 0;
+
+
 char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char* left_cards[], int has_chance_to_shooting)
 {
     int32_t i;
@@ -96,13 +99,13 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
         clean_cloned_players(cloned_players);
     }
 
-    /*
-    for (i = 0; i < MAX_CHILDREN_LEN; i++) {
-        if (rootnode.children[i] != NULL)
-            printf("move: %s, wins: %lf, visits: %d\t", rootnode.children[i]->move, rootnode.children[i]->wins, rootnode.children[i]->visits);
+    if (show_detail == 1) {
+        for (i = 0; i < MAX_CHILDREN_LEN; i++) {
+            if (rootnode.children[i] != NULL)
+                printf("move: %s, wins: %lf, visits: %d\n", rootnode.children[i]->move, rootnode.children[i]->wins, rootnode.children[i]->visits);
+        }
+        printf("\n");
     }
-    printf("\n");
-    */
 
     size_t best_visits = 0;
     char *result_action = strdup(rootnode.children[0]->move);
@@ -450,18 +453,31 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
     }
 
     // adjust cloned_player_order
-    char *last_order_name;
+    char *last_order_name = NULL;
     while (strcmp(cloned_player_order[0], winner_name) != 0) {
         last_order_name = strdup(cloned_player_order[3]);
+        free(cloned_player_order[3]);
         for (i = 3; i > 0; --i) {
             cloned_player_order[i] = cloned_player_order[i-1];
         }
         cloned_player_order[0] = strdup(last_order_name);
     }
+    if (last_order_name != NULL)
+        free(last_order_name);
 
-    cloned_me->round_card = "";
-    for (i = 0; i < 3; i++)
-        cloned_players[i].round_card = "";
+    if (cloned_me->round_card != NULL)
+        free(cloned_me->round_card);
+    cloned_me->round_card = NULL;
+
+    for (i = 0; i < 3; i++) {
+        if (cloned_players[i].round_card != NULL)
+            free(cloned_players[i].round_card);
+        cloned_players[i].round_card = NULL;
+    }
+
+    for (i = 0; i < 4; ++i)
+        if (cur_round_cards[i] != NULL)
+            free(cur_round_cards[i]);
 }
 
 int rankcmp(char a, char b)
@@ -535,19 +551,21 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
         return;
 
     size_t able_to_played_cards_count = 0, i, random_index;
-    char *able_to_played_cards[64];
+    char *able_to_played_cards[MAX_HAND_CARDS_LEN];
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        able_to_played_cards[i] = NULL;
     char **pp2able_to_played_cards = able_to_played_cards;
 
     if (selected_move == NULL) {
         if (played_suit == 0) {
-            for (i = 0; i < MAX_CARDS_LEN; i++) {
+            for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
                 if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
                     ++able_to_played_cards_count;
                     *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
                 }
             }
         } else {
-            for (i = 0; i < MAX_CARDS_LEN; i++) {
+            for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
                 if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2
                 && cloned_me->cards[i][1] == played_suit) {
                     ++able_to_played_cards_count;
@@ -556,7 +574,7 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
             }
 
             if (able_to_played_cards_count == 0) {
-                for (i = 0; i < MAX_CARDS_LEN; i++) {
+                for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
                     if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
                         ++able_to_played_cards_count;
                         *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
@@ -565,12 +583,12 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
             }
         }
 
-        for (i = able_to_played_cards_count; i < MAX_CARDS_LEN; ++i) {
+        for (i = able_to_played_cards_count; i < MAX_HAND_CARDS_LEN; ++i) {
             able_to_played_cards[i] = NULL;
         }
 
         random_index = rand() % able_to_played_cards_count;
-        selected_move = strdup(able_to_played_cards[random_index]);
+        selected_move = able_to_played_cards[random_index];
     }
 
     cloned_me->round_card = strdup(selected_move);
@@ -589,6 +607,10 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
     *pp = NULL;
 
     cloned_me->cards_count -= 1;
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (able_to_played_cards[i] != NULL)
+            free(able_to_played_cards[i]);
 }
 
 void pick_card_player(struct player *cur_player, char played_suit)
@@ -596,24 +618,24 @@ void pick_card_player(struct player *cur_player, char played_suit)
     if (cur_player->round_card != NULL && strlen(cur_player->round_card) > 1)
         return;
 
-    char *able_to_played_cards[64];
+    char *able_to_played_cards[MAX_HAND_CARDS_LEN];
     char **pp = able_to_played_cards;
     size_t i;
 
     if (played_suit != 0) {
-        for (i = 0; i < MAX_CARDS_LEN; i++) {
+        for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
             if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1
             && cur_player->cards[i][1] == played_suit)
                 *pp++ = strdup(cur_player->cards[i]);
         }
     } else {
-        for (i = 0; i < MAX_CARDS_LEN; i++) {
+        for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
             if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1)
                 *pp++ = strdup(cur_player->cards[i]);
         }
     }
 
-    while ((pp - able_to_played_cards) < 64) {
+    while ((pp - able_to_played_cards) < MAX_HAND_CARDS_LEN) {
         *pp++ = NULL;
     }
 
@@ -656,6 +678,10 @@ void pick_card_player(struct player *cur_player, char played_suit)
     *pp = NULL;
 
     cur_player->cards_count -= 1;
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (able_to_played_cards[i] != NULL)
+            free(able_to_played_cards[i]);
 }
 
 void update_score_cards(char *score_cards[], char *cur_round_cards[])
