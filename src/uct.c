@@ -27,7 +27,7 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
 
     size_t untried_moves_count, child_nodes_count, random_index;
 
-    char *selected_move;
+    char *selected_move = NULL;
 
     for (i = 0; i < itermax; i++) {
         // printf("itermax: %d >>>>>>>>>>>>>>\n", i);
@@ -118,6 +118,8 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
     }
 
     clean_nodes_mem(&rootnode);
+    if (selected_move != NULL)
+        free(selected_move);
 
     return result_action;
 }
@@ -359,7 +361,7 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
 
     if (is_me_shooting_the_moon == 1) {
         if (has_chance_to_shooting == 1)
-            win = 2;
+            win = 4;
         else
             win = 1;
     } else if (is_others_shooting_the_moon == 1) {
