@@ -44,7 +44,7 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
         untried_moves_count = 0;
         size_t j;
 
-        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_HAND_CARDS_LEN);
 
         child_nodes_count = 0;
         for (j = 0; j < MAX_CHILDREN_LEN; ++j) {
@@ -58,7 +58,7 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
             selected_move = strdup(new_child_node->move);
             do_move(selected_move, &cloned_me, cloned_players, cloned_player_order);
 
-            untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
+            untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_HAND_CARDS_LEN);
             child_nodes_count = 0;
             for (j = 0; j < MAX_CHILDREN_LEN; ++j) {
                 if (action_node->children[j] != NULL)
@@ -67,7 +67,7 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
         }
 
         // Expand
-        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_HAND_CARDS_LEN);
 
         if (untried_moves_count > 0) {
             random_index = rand() % untried_moves_count;
@@ -77,7 +77,7 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
             action_node = new_child_node;
         }
 
-        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_CARDS_LEN);
+        untried_moves_count = get_untried_moves_count(action_node->untried_moves, MAX_HAND_CARDS_LEN);
 
         // Rollout
         while (cloned_me.cards_count > 0) {
@@ -187,11 +187,11 @@ void init_rootnode(struct node *rootnode, struct stru_me *me)
         }
     }
 
-    while ((pp - rootnode->untried_moves) < MAX_CARDS_LEN) {
+    while ((pp - rootnode->untried_moves) < MAX_HAND_CARDS_LEN) {
         *pp = NULL;
         ++pp;
     }
-    assert((pp - rootnode->untried_moves) == MAX_CARDS_LEN);
+    assert((pp - rootnode->untried_moves) == MAX_HAND_CARDS_LEN);
 }
 
 void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me)
@@ -203,7 +203,7 @@ void clone_me(struct stru_me *ori_me, struct stru_me *cloned_me)
     cloned_me->round_card = NULL;
 
     size_t i;
-    for (i = 0; i < MAX_CARDS_LEN; i++) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
         if (ori_me->cards[i] != NULL)
             cloned_me->cards[i] = strdup(ori_me->cards[i]);
         else
@@ -234,7 +234,7 @@ void clone_players(struct player ori_players[], struct player cloned_players[])
         cloned_players[i].cards_count = ori_players[i].cards_count;
         cloned_players[i].round_card = strdup(ori_players[i].round_card);
 
-        for (j = 0; j < MAX_CARDS_LEN; j++) {
+        for (j = 0; j < MAX_HAND_CARDS_LEN; j++) {
             if (ori_players[i].cards[j] != NULL)
                 cloned_players[i].cards[j] = strdup(ori_players[i].cards[j]);
             else
@@ -768,7 +768,7 @@ void init_childnode(struct node *child, char *move, struct node *parent, struct 
         child->children[i] = NULL;
     }
 
-    for (i = 0; i < MAX_CARDS_LEN; i++) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
         if (parent->untried_moves[i] != NULL && strlen(parent->untried_moves[i]) == 2)
             child->untried_moves[i] = strdup(parent->untried_moves[i]);
         else
@@ -783,7 +783,7 @@ void clean_nodes_mem(struct node *rootnode)
 
     size_t i;
 
-    for (i = 0; i < MAX_CARDS_LEN; ++i)
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
         if (rootnode->untried_moves[i] != NULL)
             free(rootnode->untried_moves[i]);
 
@@ -800,7 +800,7 @@ void clean_cloned_me(struct stru_me *cloned_me)
     cloned_me->round_card = NULL;
 
     size_t i;
-    for (i = 0; i < MAX_CARDS_LEN; ++i)
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
         if (cloned_me->cards[i] != NULL)
             free(cloned_me->cards[i]);
 
@@ -822,7 +822,7 @@ void clean_cloned_players(struct player players[])
         if (p->name != NULL)
             free(p->name);
 
-        for (j = 0; j < MAX_CARDS_LEN; ++j)
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
             if (p->cards[j] != NULL)
                 free(p->cards[j]);
 

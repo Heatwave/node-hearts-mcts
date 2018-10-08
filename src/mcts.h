@@ -14,7 +14,7 @@ struct stru_me {
     int32_t deal_score;
     int32_t cards_count;
     char *round_card;
-    char *cards[MAX_CARDS_LEN];
+    char *cards[MAX_HAND_CARDS_LEN];
     char *candidate_cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
 };
@@ -24,7 +24,7 @@ struct player {
     int32_t deal_score;
     int32_t cards_count;
     char *round_card;
-    char *cards[MAX_CARDS_LEN];
+    char *cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
 };
 
@@ -34,7 +34,7 @@ struct node {
     struct node *children[MAX_CHILDREN_LEN];
     double wins;
     uint32_t visits;
-    char *untried_moves[MAX_CARDS_LEN];
+    char *untried_moves[MAX_HAND_CARDS_LEN];
 };
 
 

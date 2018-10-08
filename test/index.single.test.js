@@ -10,29 +10,29 @@ const all_pokers = [
 
 const me = {
     "player_name": 'me',
-    "deal_score": -14,
-    "cards": ["2D", "9D", "TD", "4S", "8S", "QS"],
-    "cards_count": 6,
-    "candidate_cards": ["2D", "9D", "TD", "4S", "8S", "QS"],
-    "score_cards": ["TC", "2H", '6H', '7H', '8H', '9H', 'TH', 'AH']
+    "deal_score": -13,
+    "cards": ["4S", "8S", "QS"],
+    "cards_count": 3,
+    "candidate_cards": ["4S", "8S", "QS"],
+    "score_cards": ["2H", "3H", "4H", "5H", '6H', '7H', '8H', '9H', 'TH', 'JH', 'QH', 'KH', 'AH']
 };
 
 const players = [
     {
-        "player_name": 'p1', "deal_score": -1, "cards_count": 5, "round_card": '3H', "score_cards": ["KH"]
+        "player_name": 'p1', "deal_score": 0, "cards_count": 2, "round_card": '2D', "score_cards": ["TC"]
     },
     {
-        "player_name": 'p2', "deal_score": 0, "cards_count": 6, "round_card": '', "score_cards": []
+        "player_name": 'p2', "deal_score": 0, "cards_count": 3, "round_card": '', "score_cards": []
     },
     {
-        "player_name": 'p3', "deal_score": 0, "cards_count": 6, "round_card": '', "score_cards": []
+        "player_name": 'p3', "deal_score": 0, "cards_count": 3, "round_card": '', "score_cards": []
     }
 ];
 
 const player_order = ['p1', 'me', 'p2', 'p3'];
 
 let left_cards = [
-    '3C', '3D', '4H', '4C', '4D', '5H', '5D', '6D', '7D', '8D', '9C', 'JH', 'JC', 'JD', 'QH', 'QC', 'QD'
+    '3C', '3D', 'AD', '4C', '4D', '5S', '5D', '6D'
 ];
 
 // left_cards = left_cards.filter(value => {

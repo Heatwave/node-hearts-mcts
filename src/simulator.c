@@ -80,7 +80,7 @@ void init_players(struct player players[], size_t players_len)
         p->deal_score = 0;
         p->cards_count = 13;
         p->round_card = "";
-        for (j = 0; j < MAX_CARDS_LEN; ++j)
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
             p->cards[j] = NULL;
         for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
             p->score_cards[j] = NULL;
@@ -142,9 +142,9 @@ void remove_card_from_cards(char *cards[], char *card)
 {
     size_t i, j;
 
-    for (i = 0; i < MAX_CARDS_LEN; ++i) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
         if (cards[i] != NULL && strcmp(cards[i], card) == 0) {
-            for (j = i; j + 1 < MAX_CARDS_LEN; ++j) {
+            for (j = i; j + 1 < MAX_HAND_CARDS_LEN; ++j) {
                 cards[j] = cards[j+1];
             }
             break;

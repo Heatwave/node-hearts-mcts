@@ -240,7 +240,7 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
     if (status != napi_ok) return 1;
 
     size_t i;
-    for (i = 0; i< MAX_CARDS_LEN; i++) {
+    for (i = 0; i< MAX_HAND_CARDS_LEN; i++) {
         player->cards[i] = NULL;
     }
 
@@ -333,7 +333,7 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
         free(me->round_card);
 
     size_t i, j;
-    for (i = 0; i < MAX_CARDS_LEN; ++i)
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
         if (me->cards[i] != NULL)
             free(me->cards[i]);
 
@@ -352,7 +352,7 @@ void clean_mem(struct stru_me *me, struct player players[], char *player_order[]
         if (players[i].round_card != NULL)
             free(players[i].round_card);
 
-        for (j = 0; j < MAX_CARDS_LEN; ++j)
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
             if (players[i].cards[j] != NULL)
                 free(players[i].cards[j]);
 
@@ -418,7 +418,7 @@ napi_value simulation(napi_env env, napi_callback_info info)
         if (status != napi_ok) return NULL;
     }
 
-    for ( ; i < MAX_CARDS_LEN; ++i) {
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i) {
         me->cards[i] = NULL;
     }
 
@@ -439,7 +439,7 @@ napi_value simulation(napi_env env, napi_callback_info info)
     status = napi_create_double(env, shooting_rate, &shooting_rate_js);
     if (status != napi_ok) return NULL;
 
-    for (i = 0; i < MAX_CARDS_LEN; ++i)
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
         if (me->cards[i] != NULL)
             free(me->cards[i]);
     free(me);
