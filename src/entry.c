@@ -240,14 +240,39 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
     if (status != napi_ok) return 1;
 
     size_t i;
-    for (i = 0; i< MAX_HAND_CARDS_LEN; i++) {
+    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
         player->cards[i] = NULL;
     }
 
-
     napi_value card_str;
-    napi_value score_cards_js;
     size_t card_str_len;
+
+    napi_value hand_cards_js;
+    uint32_t hand_cards_len;
+
+    status = napi_get_named_property(env, player_js_obj, "cards", &hand_cards_js);
+    if (status != napi_ok) return 1;
+
+    status = napi_get_array_length(env, hand_cards_js, &hand_cards_len);
+    if (status != napi_ok) return 1;
+
+    for (i = 0; i < hand_cards_len; ++i) {
+        status = napi_get_element(env, hand_cards_js, i, &card_str);
+        if (status != napi_ok) return 1;
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        if (status != napi_ok) return 1;
+
+        player->cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, player->cards[i], card_str_len+1, 0);
+        if (status != napi_ok) return 1;
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        player->cards[i] = NULL;
+
+
+    napi_value score_cards_js;
     status = napi_get_named_property(env, player_js_obj, "score_cards", &score_cards_js);
     if (status != napi_ok) return 1;
 

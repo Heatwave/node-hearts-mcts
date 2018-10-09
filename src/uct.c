@@ -158,7 +158,9 @@ void distribute_left_cards(char **left_cards, struct player players[])
     for (i = 0; i < 3; i++) {
         struct player *pl = &players[i];
         cards_count = pl->cards_count;
-        for (j = 0; j < (size_t)cards_count; j++) {
+        for (j = 0; j < MAX_HAND_CARDS_LEN && pl->cards[j] != NULL; ++j)
+            ;
+        for ( ; j < (size_t)cards_count; j++) {
             pl->cards[j] = strdup(*pp++);
         }
     }
