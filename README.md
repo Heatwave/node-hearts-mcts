@@ -34,6 +34,7 @@ wiki: https://en.wikipedia.org/wiki/Hearts
 1. Add the passed cards to other players' cards, so we can know what cards of opponent has.
 1. Add exposed card.
 1. Add Hearts broken.
+1. If one of the players pick a card it's not the played suit, we can know he/her has no the cards with that suit.
 
 ## References
 
