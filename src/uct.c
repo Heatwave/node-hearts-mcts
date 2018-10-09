@@ -389,16 +389,27 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
     char **pp = cur_round_cards;
 
     size_t i, j;
+
+    int is_heart_broken = 0;
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i)
+        if (cloned_me->score_cards[i] != NULL && cloned_me->score_cards[i][1] == 'H')
+            is_heart_broken = 1;
+
+    for (i = 0; i < 3; ++i)
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
+            if (cloned_players[i].score_cards[j] != NULL && cloned_players[i].score_cards[j][1] == 'H')
+                is_heart_broken = 1;
+
     for (i = 0; i < order_count; i++) {
         order_player_name = cloned_player_order[i];
 
         if (strcmp(order_player_name, cloned_me->name) == 0) {
-            pick_card_me(cloned_me, played_suit, selected_move);
+            pick_card_me(cloned_me, played_suit, selected_move, is_heart_broken);
             *pp++ = strdup(cloned_me->round_card);
         } else {
             for (j = 0; j < 3; j++) {
                 if (strcmp(order_player_name, cloned_players[j].name) == 0) {
-                    pick_card_player(&cloned_players[j], played_suit);
+                    pick_card_player(&cloned_players[j], played_suit, is_heart_broken);
                     *pp++ = strdup(cloned_players[j].round_card);
                 }
             }
@@ -549,7 +560,7 @@ char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], 
     return suit;
 }
 
-void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_move)
+void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_move, int is_heart_broken)
 {
     if (cloned_me->round_card != NULL && strlen(cloned_me->round_card) > 1)
         return;
@@ -562,10 +573,27 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
 
     if (selected_move == NULL) {
         if (played_suit == 0) {
-            for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
-                if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
-                    ++able_to_played_cards_count;
-                    *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+            if (is_heart_broken) {
+                for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
+                    if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
+                        ++able_to_played_cards_count;
+                        *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                    }
+                }
+            } else {
+                for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
+                    if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2 && cloned_me->cards[i][1] != 'H') {
+                        ++able_to_played_cards_count;
+                        *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                    }
+                }
+                if (able_to_played_cards_count == 0) {
+                    for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
+                        if (cloned_me->cards[i] != NULL && strlen(cloned_me->cards[i]) == 2) {
+                            ++able_to_played_cards_count;
+                            *pp2able_to_played_cards++ = strdup(cloned_me->cards[i]);
+                        }
+                    }
                 }
             }
         } else {
@@ -586,6 +614,8 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
                 }
             }
         }
+
+        assert(able_to_played_cards_count > 0);
 
         for (i = able_to_played_cards_count; i < MAX_HAND_CARDS_LEN; ++i) {
             able_to_played_cards[i] = NULL;
@@ -617,7 +647,7 @@ void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_mo
             free(able_to_played_cards[i]);
 }
 
-void pick_card_player(struct player *cur_player, char played_suit)
+void pick_card_player(struct player *cur_player, char played_suit, int is_heart_broken)
 {
     if (cur_player->round_card != NULL && strlen(cur_player->round_card) > 1)
         return;
@@ -633,9 +663,14 @@ void pick_card_player(struct player *cur_player, char played_suit)
                 *pp++ = strdup(cur_player->cards[i]);
         }
     } else {
-        for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
-            if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1)
-                *pp++ = strdup(cur_player->cards[i]);
+        if (is_heart_broken) {
+            for (i = 0; i < MAX_HAND_CARDS_LEN; i++)
+                if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1)
+                    *pp++ = strdup(cur_player->cards[i]);
+        } else {
+            for (i = 0; i < MAX_HAND_CARDS_LEN; i++)
+                if (cur_player->cards[i] != NULL && strlen(cur_player->cards[i]) > 1 && cur_player->cards[i][1] != 'H')
+                    *pp++ = strdup(cur_player->cards[i]);
         }
     }
 

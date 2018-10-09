@@ -44,7 +44,7 @@ function start() {
     const shooting_rate = mcts.simulation(me.cards, me.left_cards);
     // console.log('time spent: ', Date.now() - start);
     console.log(shooting_rate);
-    if (shooting_rate > 0.01)
+    if (shooting_rate >= 0.01)
         console.log(me.cards);
 }
 

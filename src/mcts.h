@@ -70,8 +70,8 @@ void update_node_with_result(struct node *action_node, struct stru_me *cloned_me
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
 int rankcmp(char a, char b);
 char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
-void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_move);
-void pick_card_player(struct player *cur_player, char played_suit);
+void pick_card_me(struct stru_me *cloned_me, char played_suit, char *selected_move, int is_heart_broken);
+void pick_card_player(struct player *cur_player, char played_suit, int is_heart_broken);
 void update_score_cards(char *score_cards[], char *cur_round_cards[]);
 
 struct node *uct_select_child(const struct node *n);
