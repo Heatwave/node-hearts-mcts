@@ -67,3 +67,5 @@ build/
 .vscode
 
 index.single.*.test.js
+
+temp
