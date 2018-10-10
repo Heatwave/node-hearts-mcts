@@ -48,7 +48,7 @@ double do_simulate(struct stru_me *me, char *left_cards[])
             do_move(NULL, cloned_me, cloned_players, play_order);
         }
 
-        update_score_based_on_score_cards(cloned_me, cloned_players);
+        update_score_based_on_score_cards(cloned_me, cloned_players, 0);
 
         if (cloned_me->deal_score > 0)
             shooting_count += 1.0;

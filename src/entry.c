@@ -17,15 +17,16 @@ napi_value uct(napi_env env, napi_callback_info info)
     char *player_order[4];
     char *left_cards[MAX_CARDS_LEN];
     int has_chance_to_shooting = 0;
+    int is_AH_exposed = 0;
 
-    napi_value argv[6];
-    size_t argc = 6;
+    napi_value argv[7];
+    size_t argc = 7;
 
     // initialize random seed
     srand(time(NULL));
 
     napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
-    if (argc != 6)
+    if (argc != 7)
     {
         napi_throw_error(env, "EINVAL", "arguments number shoule be 5");
         return NULL;
@@ -49,11 +50,14 @@ napi_value uct(napi_env env, napi_callback_info info)
     status = napi_get_value_int32(env, argv[5], &has_chance_to_shooting);
     if (status != napi_ok) return NULL;
 
+    status = napi_get_value_int32(env, argv[6], &is_AH_exposed);
+    if (status != napi_ok) return NULL;
+
     napi_value action_js;
 
     char *action;
 
-    action = do_uct(itermax, &me, players, player_order, left_cards, has_chance_to_shooting);
+    action = do_uct(itermax, &me, players, player_order, left_cards, has_chance_to_shooting, is_AH_exposed);
 
     status = napi_create_string_utf8(env, action, NAPI_AUTO_LENGTH, &action_js);
     if (status != napi_ok) return NULL;

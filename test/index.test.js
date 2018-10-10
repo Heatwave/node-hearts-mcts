@@ -118,7 +118,7 @@ function pickCardMe(me, players, order) {
     if (me.candidate_cards.length === 1)
         action = me.candidate_cards[0];
     else {
-        action = mcts.uct(MCTS_ITERMAX, me, players, order, me.left_cards, 0);
+        action = mcts.uct(MCTS_ITERMAX, me, players, order, me.left_cards, 0, 0);
         assert(action.length === 2);
     }
 

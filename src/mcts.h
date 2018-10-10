@@ -49,7 +49,7 @@ int get_parameter_left_cards(napi_env env, napi_value left_cards_js_array, char 
 
 void clean_mem(struct stru_me *me, struct player players[], char *player_order[], char *left_cards[]);
 
-char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char *left_cards[], int has_chance_to_shooting);
+char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], char *left_cards[], int has_chance_to_shooting, int is_AH_exposed);
 
 void shuffle_left_cards(char **left_cards);
 void fisher_yates(char **arr, size_t len);
@@ -64,7 +64,7 @@ size_t get_untried_moves_count(char *untried_moves[], size_t len);
 
 size_t get_child_nodes_count(struct node *arr[], size_t len);
 
-void update_score_based_on_score_cards(struct stru_me *cloned_me, struct player players[]);
+void update_score_based_on_score_cards(struct stru_me *cloned_me, struct player players[], int is_AH_exposed);
 void update_node_with_result(struct node *action_node, struct stru_me *cloned_me, struct player players[], int has_chance_to_shooting);
 
 void do_move(char *selected_move, struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
