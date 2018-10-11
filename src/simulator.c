@@ -4,7 +4,7 @@
 
 #include "mcts.h"
 
-#define ITER_MAX 60000
+#define ITER_MAX 50000
 
 double do_simulate(struct stru_me *me, char *left_cards[])
 {

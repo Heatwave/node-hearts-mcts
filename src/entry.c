@@ -299,6 +299,27 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
     for ( ; i < MAX_HAND_CARDS_LEN; ++i)
         player->score_cards[i] = NULL;
 
+
+    napi_value suits_status_js;
+    status = napi_get_named_property(env, player_js_obj, "suits_status", &suits_status_js);
+    if (status != napi_ok) return 1;
+
+    uint32_t suits_status_len;
+    status = napi_get_array_length(env, suits_status_js, &suits_status_len);
+    if (status != napi_ok) return 1;
+
+    napi_value suit_int_js;
+    for (i = 0; i < suits_status_len; ++i) {
+        status = napi_get_element(env, suits_status_js, i, &suit_int_js);
+        if (status != napi_ok) return 1;
+
+        int32_t temp_int;
+        status = napi_get_value_int32(env, suit_int_js, &temp_int);
+        if (status != napi_ok) return 1;
+
+        player->suits_status[i] = (int)temp_int;
+    }
+
     return 0;
 }
 

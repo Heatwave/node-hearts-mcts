@@ -10,31 +10,29 @@ const all_pokers = [
 
 const me = {
     "player_name": 'me',
-    "deal_score": -28,
-    "cards": ['5D', '9D', 'TD', 'QH'],
-    "cards_count": 4,
-    "candidate_cards": ['5D', '9D', 'TD', 'QH'],
-    "score_cards": ['4H', '5H', '7H', '8H', 'TH', 'KH', 'AH', 'TC']
+    "deal_score": -18,
+    "cards": ['QH', 'JH', 'QD', '8D', '7D'],
+    "cards_count": 5,
+    "candidate_cards": ['QH', 'JH', 'QD', '8D', '7D'],
+    "score_cards": ['QS', 'KH', '5H', '4H', '3H', '2H']
 };
 
 const players = [
     {
-        "player_name": 'p1', "deal_score": -2, "cards_count": 4, "round_card": '', "score_cards": ["JH"], "cards": []
+        "player_name": 'p1', "deal_score": 0, "cards_count": 5, "round_card": '', "score_cards": [], "cards": [], "suits_status": [0, 1, 0, 1]
     },
     {
-        "player_name": 'p2', "deal_score": 0, "cards_count": 4, "round_card": '', "score_cards": [], "cards": []
+        "player_name": 'p2', "deal_score": -1, "cards_count": 5, "round_card": '', "score_cards": ['TH'], "cards": [], "suits_status": [1, 0, 0, 0]
     },
     {
-        "player_name": 'p3', "deal_score": 0, "cards_count": 4, "round_card": '', "score_cards": [], "cards": []
+        "player_name": 'p3', "deal_score": 0, "cards_count": 5, "round_card": '', "score_cards": [], "cards": [], "suits_status": [0, 0, 1, 1]
     }
 ];
 
 const player_order = ['me', 'p1', 'p2', 'p3'];
 
 let left_cards = [
-    '2D', '2S', '6S', 'QS',
-    '2H', '3H', '6H', '9H',
-    '3D', '7D', 'JD', 'AC'
+    '2D', '3D', '5S', '5C', '6H', '6C', '7H', '7S', '8H', '8S', '8C', '9H', 'TC', 'KD', 'AH'
 ];
 
 // left_cards = left_cards.filter(value => {
@@ -53,6 +51,6 @@ let left_cards = [
 // });
 
 var start = Date.now();
-const action = mcts.uct(15000, me, players, player_order, left_cards, 0, 1);
+const action = mcts.uct(15000, me, players, player_order, left_cards, 0, 0);
 console.log(`time spent: ${Date.now() - start}`);
 console.log('action:' + action);

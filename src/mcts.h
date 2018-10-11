@@ -21,11 +21,13 @@ struct stru_me {
 
 struct player {
     char *name;
+    int number;
     int32_t deal_score;
     int32_t cards_count;
     char *round_card;
     char *cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
+    int suits_status[4];
 };
 
 struct node {

@@ -224,6 +224,13 @@ function getScoreFromCards(scoreCards) {
     return score;
 }
 
+let total_scores = {
+    me: 0,
+    p1: 0,
+    p2: 0,
+    p3: 0
+};
+
 function start() {
     let pokers = cloneObj(all_pokers);
     fisher_yates(pokers);
@@ -244,13 +251,13 @@ function start() {
 
     let players = [
         {
-            'player_name': 'p1', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': []
+            'player_name': 'p1', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': [], "suits_status": []
         },
         {
-            'player_name': 'p2', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': []
+            'player_name': 'p2', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': [], "suits_status": []
         },
         {
-            'player_name': 'p3', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': []
+            'player_name': 'p3', 'deal_score': 0, 'cards': [], 'cards_count': 13, 'round_card': '', 'candidate_cards': [], 'score_cards': [], "suits_status": []
         }
     ];
     players.forEach(value => {
@@ -362,10 +369,12 @@ function start() {
         'me': me.deal_score
     };
     for (const p of players) {
+        total_scores[p.player_name] += p.deal_score;
         scores[p.player_name] = p.deal_score;
         if (me.deal_score > p.deal_score)
             me_rank -= 1;
     }
+    total_scores.me += me.deal_score;
     console.log(scores, me_rank);
     return me_rank;
 }
@@ -374,7 +383,9 @@ let i = 100;
 let rank = 4;
 let result = [0, 0, 0, 0];
 while (--i) {
+    console.log('i:', i);
     rank = start();
     result[rank-1]++;
 }
 console.log(result);
+console.log(total_scores);
