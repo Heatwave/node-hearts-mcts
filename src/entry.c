@@ -5,6 +5,10 @@
 
 #include "mcts.h"
 
+
+#define CHECK_STATUS(return_value) if (is_call_success != 0) return return_value;
+#define CHECK_NAPI_STATUS(return_value) if (status != napi_ok) return return_value;
+
 // entry function
 napi_value uct(napi_env env, napi_callback_info info)
 {
@@ -14,6 +18,9 @@ napi_value uct(napi_env env, napi_callback_info info)
     int32_t itermax;
     struct stru_me me;
     struct player players[3];
+    players[0].name = "p1";
+    players[1].name = "p2";
+    players[2].name = "p3";
     char *player_order[4];
     char *left_cards[MAX_CARDS_LEN];
     int has_chance_to_shooting = 0;
@@ -202,17 +209,17 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
 {
     napi_status status;
 
-    napi_value name_js;
-    status = napi_get_named_property(env, player_js_obj, "player_name", &name_js);
-    if (status != napi_ok) return 1;
+    // napi_value name_js;
+    // status = napi_get_named_property(env, player_js_obj, "player_name", &name_js);
+    // if (status != napi_ok) return 1;
 
-    size_t name_len;
-    status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
-    if (status != napi_ok) return 1;
+    // size_t name_len;
+    // status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
+    // if (status != napi_ok) return 1;
 
-    player->name = malloc(name_len + 1);
-    status = napi_get_value_string_utf8(env, name_js, player->name, name_len+1, 0);
-    if (status != napi_ok) return 1;
+    // player->name = malloc(name_len + 1);
+    // status = napi_get_value_string_utf8(env, name_js, player->name, name_len+1, 0);
+    // if (status != napi_ok) return 1;
 
 
     napi_value deal_score_js;
@@ -239,9 +246,13 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
     status = napi_get_value_string_utf8(env, round_card_js, NULL, 0, &round_card_len);
     if (status != napi_ok) return 1;
 
-    player->round_card = malloc(round_card_len + 1);
-    status = napi_get_value_string_utf8(env, round_card_js, player->round_card, round_card_len+1, 0);
-    if (status != napi_ok) return 1;
+    if (round_card_len != 2)
+        player->round_card = NULL;
+    else {
+        player->round_card = malloc(round_card_len + 1);
+        status = napi_get_value_string_utf8(env, round_card_js, player->round_card, round_card_len+1, 0);
+        if (status != napi_ok) return 1;
+    }
 
     size_t i;
     for (i = 0; i < MAX_HAND_CARDS_LEN; i++) {
@@ -483,7 +494,7 @@ napi_value simulation(napi_env env, napi_callback_info info)
     is_call_success = get_parameter_left_cards(env, left_cards_js_arr, left_cards);
 
 
-    double shooting_rate = do_simulate(me, left_cards);
+    double shooting_rate = do_simulation(me, left_cards);
     napi_value shooting_rate_js;
 
     status = napi_create_double(env, shooting_rate, &shooting_rate_js);
@@ -501,6 +512,235 @@ napi_value simulation(napi_env env, napi_callback_info info)
     return shooting_rate_js;
 }
 
+napi_value simulate(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    int is_call_success = 0;
+
+    napi_value argv[5];
+    size_t argc = 5;
+
+    // initialize random seed
+    srand(time(NULL));
+
+    napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+    if (argc != 5) {
+        napi_throw_error(env, "EINVAL", "simulate function arguments number shoule be 6");
+        return NULL;
+    }
+
+    int32_t itermax;
+
+    struct stru_me *me = malloc(sizeof(struct stru_me));
+    me->name = "me";
+
+    struct player players[3];
+    players[0].name = "p1";
+    players[1].name = "p2";
+    players[2].name = "p3";
+
+    char *player_order[4];
+
+    int is_AH_exposed = 0;
+
+
+    status = napi_get_value_int32(env, argv[0], &itermax);
+    CHECK_NAPI_STATUS(NULL);
+
+    is_call_success = get_simulate_parameter_me(env, argv[1], me);
+    CHECK_STATUS(NULL);
+
+    is_call_success = get_parameter_players(env, argv[2], players);
+    CHECK_STATUS(NULL);
+
+    is_call_success = get_parameter_player_order(env, argv[3], player_order);
+    CHECK_STATUS(NULL);
+
+    status = napi_get_value_int32(env, argv[4], &is_AH_exposed);
+    CHECK_NAPI_STATUS(NULL);
+
+    napi_value score_js;
+    int32_t score;
+
+    score = do_simulate(itermax, me, players, player_order, is_AH_exposed);
+
+    status = napi_create_int32(env, score, &score_js);
+    CHECK_NAPI_STATUS(NULL);
+
+    clean_simulate_mem(me, players, player_order);
+
+    return score_js;
+}
+
+int get_simulate_parameter_me(napi_env env, napi_value me_js, struct stru_me *me)
+{
+    napi_status status;
+
+    napi_value deal_score_js;
+    status = napi_get_named_property(env, me_js, "deal_score", &deal_score_js);
+    CHECK_NAPI_STATUS(1);
+
+    napi_value cards_count_js;
+    status = napi_get_named_property(env, me_js, "cards_count", &cards_count_js);
+    CHECK_NAPI_STATUS(1);
+
+    status = napi_get_value_int32(env, cards_count_js, &me->cards_count);
+    CHECK_NAPI_STATUS(1);
+
+    napi_value round_card_js;
+    status = napi_get_named_property(env, me_js, "round_card", &round_card_js);
+    CHECK_NAPI_STATUS(1);
+
+    size_t round_card_len;
+    status = napi_get_value_string_utf8(env, round_card_js, NULL, 0, &round_card_len);
+    CHECK_NAPI_STATUS(1);
+
+    if (round_card_len != 2) {
+        me->round_card = NULL;
+    } else {
+        me->round_card = malloc(round_card_len+1);
+        status = napi_get_value_string_utf8(env, round_card_js, me->round_card, round_card_len+1, 0);
+        CHECK_NAPI_STATUS(1);
+    }
+
+    napi_value cards_js;
+    status = napi_get_named_property(env, me_js, "cards", &cards_js);
+    CHECK_NAPI_STATUS(1);
+
+    uint32_t i, cards_len;
+    status = napi_get_array_length(env, cards_js, &cards_len);
+    CHECK_NAPI_STATUS(1);
+
+    napi_value card_str;
+    size_t card_str_len;
+    for (i = 0; i < cards_len; ++i) {
+        status = napi_get_element(env, cards_js, i, &card_str);
+        CHECK_NAPI_STATUS(1);
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        CHECK_NAPI_STATUS(1);
+
+        me->cards[i] = malloc(card_str_len+1);
+        status = napi_get_value_string_utf8(env, card_str, me->cards[i], card_str_len+1, 0);
+        CHECK_NAPI_STATUS(1);
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        me->cards[i] = NULL;
+
+    napi_value candidate_cards_js;
+    status = napi_get_named_property(env, me_js, "candidate_cards", &candidate_cards_js);
+    CHECK_NAPI_STATUS(1);
+
+    uint32_t candidate_cards_len;
+    status = napi_get_array_length(env, candidate_cards_js, &candidate_cards_len);
+    CHECK_NAPI_STATUS(1);
+
+    for (i = 0; i < candidate_cards_len; ++i) {
+        status = napi_get_element(env, candidate_cards_js, i, &card_str);
+        CHECK_NAPI_STATUS(1);
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        CHECK_NAPI_STATUS(1);
+        me->candidate_cards[i] = malloc(card_str_len+1);
+        status = napi_get_value_string_utf8(env, card_str, me->candidate_cards[i], card_str_len+1, 0);
+        CHECK_NAPI_STATUS(1);
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        me->candidate_cards[i] = NULL;
+
+    napi_value score_cards_js;
+    status = napi_get_named_property(env, me_js, "score_cards", &score_cards_js);
+    CHECK_NAPI_STATUS(1);
+
+    uint32_t score_cards_len;
+    status = napi_get_array_length(env, score_cards_js, &score_cards_len);
+    CHECK_NAPI_STATUS(1);
+
+    for (i = 0; i < score_cards_len; ++i) {
+        status = napi_get_element(env, score_cards_js, i, &card_str);
+        CHECK_NAPI_STATUS(1);
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        CHECK_NAPI_STATUS(1);
+
+        me->score_cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, me->score_cards[i], card_str_len+1, 0);
+        CHECK_NAPI_STATUS(1);
+    }
+
+    for ( ; i < MAX_HAND_CARDS_LEN; ++i)
+        me->score_cards[i] = NULL;
+
+    napi_value left_cards_js;
+    status = napi_get_named_property(env, me_js, "left_cards", &left_cards_js);
+    CHECK_NAPI_STATUS(1);
+
+    uint32_t left_cards_len;
+    status = napi_get_array_length(env, left_cards_js, &left_cards_len);
+    CHECK_NAPI_STATUS(1);
+
+    for (i = 0; i < left_cards_len; ++i) {
+        status = napi_get_element(env, left_cards_js, i, &card_str);
+        CHECK_NAPI_STATUS(1);
+
+        status = napi_get_value_string_utf8(env, card_str, NULL, 0, &card_str_len);
+        CHECK_NAPI_STATUS(1);
+
+        me->left_cards[i] = malloc(card_str_len + 1);
+        status = napi_get_value_string_utf8(env, card_str, me->left_cards[i], card_str_len+1, 0);
+        CHECK_NAPI_STATUS(1);
+    }
+
+    for ( ; i < MAX_CARDS_LEN; ++i)
+        me->left_cards[i] = NULL;
+
+    return 0;
+}
+
+void clean_simulate_mem(struct stru_me *me, struct player players[], char *player_order[])
+{
+    if (me->round_card != NULL)
+        free(me->round_card);
+
+    size_t i, j;
+
+    for (i = 0; i < MAX_HAND_CARDS_LEN; ++i) {
+        if (me->cards[i] != NULL)
+            free(me->cards[i]);
+        if (me->candidate_cards[i] != NULL)
+            free(me->candidate_cards[i]);
+        if (me->score_cards[i] != NULL)
+            free(me->score_cards[i]);
+    }
+
+    for (i = 0; i < MAX_CARDS_LEN; ++i) {
+        if (me->left_cards[i] != NULL)
+            free(me->left_cards[i]);
+    }
+
+    for (i = 0; i < 3; ++i) {
+        if (players[i].round_card != NULL)
+            free(players[i].round_card);
+
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
+            if (players[i].cards[j] != NULL)
+                free(players[i].cards[j]);
+
+        for (j = 0; j < MAX_HAND_CARDS_LEN; ++j)
+            if (players[i].score_cards[j] != NULL)
+                free(players[i].score_cards[j]);
+    }
+
+    for (i = 0; i < 4; ++i)
+        if (player_order[i] != NULL)
+            free(player_order[i]);
+
+    free(me);
+}
+
+
 napi_value Init(napi_env env, napi_value exports)
 {
     napi_status status;
@@ -516,6 +756,12 @@ napi_value Init(napi_env env, napi_value exports)
     if (status != napi_ok) return NULL;
 
     status = napi_set_named_property(env, exports, "simulation", func);
+    if (status != napi_ok) return NULL;
+
+    status = napi_create_function(env, NULL, 0, simulate, NULL, &func);
+    if (status != napi_ok) return NULL;
+
+    status = napi_set_named_property(env, exports, "simulate", func);
     if (status != napi_ok) return NULL;
 
     return exports;

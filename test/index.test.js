@@ -4,7 +4,7 @@ const assert = require('assert');
 
 const mcts = require('../index.js');
 
-const MCTS_ITERMAX = 15000;
+const SIMULATE_ITERMAX = 2000;
 
 function cloneObj(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -118,7 +118,28 @@ function pickCardMe(me, players, order) {
     if (me.candidate_cards.length === 1)
         action = me.candidate_cards[0];
     else {
-        action = mcts.uct(MCTS_ITERMAX, me, players, order, me.left_cards, 0, 0);
+        let total_scores = {};
+        let score;
+        for (const card of me.candidate_cards) {
+            me.round_card = card;
+            let start = Date.now();
+            score = mcts.simulate(SIMULATE_ITERMAX, me, players, order, 0);
+            let spend = Date.now() - start;
+            if (spend > 800)
+                console.log(spend);
+            total_scores[card] = score;
+        }
+
+        let best_score;
+        for (const card in total_scores) {
+            if (total_scores.hasOwnProperty(card)) {
+                const score = total_scores[card];
+                if (!best_score || best_score < score) {
+                    best_score = score;
+                    action = card;
+                }
+            }
+        }
         assert(action.length === 2);
     }
 

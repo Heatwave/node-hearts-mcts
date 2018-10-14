@@ -33,6 +33,11 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
     //     printf("%s H: %d S: %d C: %d D: %d\n", players[i].name, players[i].suits_status[0], players[i].suits_status[1], players[i].suits_status[2], players[i].suits_status[3]);
     // }
 
+    // int candidate_cards_count = 0;
+    // for (i = 0; i < MAX_CHILDREN_LEN; ++i)
+    //     if (me->candidate_cards[i] != NULL)
+    //         ++candidate_cards_count;
+
     for (i = 0; i < itermax; i++) {
         // printf("itermax: %d >>>>>>>>>>>>>>\n", i);
         action_node = &rootnode;
@@ -136,39 +141,13 @@ char *do_uct(int32_t itermax, struct stru_me *me, struct player players[], char 
     return result_action;
 }
 
-void shuffle_left_cards(char **left_cards)
-{
-    size_t count = 0;
-    char **pp = left_cards;
-    while (*pp++ != NULL)
-        ;
-    count = pp - left_cards - 1;
-    assert(count > 1);
-
-    fisher_yates(left_cards, count);
-}
-
-void fisher_yates(char **arr, size_t len)
-{
-    size_t i = len, j;
-    char *temp;
-
-    assert(i > 1);
-    while (--i) {
-        j = rand() % (i+1);
-        temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
-    }
-}
-
 void distribute_left_cards(char **left_cards, struct player players[])
 {
     char **pp = left_cards;
-    size_t i, j, k;
+    size_t i, j;
     int32_t cards_count;
 
-    int distributed_indices[MAX_CARDS_LEN] = { 0 };
+    // int distributed_indices[MAX_CARDS_LEN] = { 0 };
 
     for (i = 0; i < 3; i++) {
         struct player *pl = &players[i];
@@ -552,46 +531,6 @@ void do_move(char *selected_move, struct stru_me *cloned_me, struct player clone
     for (i = 0; i < 4; ++i)
         if (cur_round_cards[i] != NULL)
             free(cur_round_cards[i]);
-}
-
-int rankcmp(char a, char b)
-{
-    if (isdigit(a))
-        a = a - '0';
-    else if (a == 'T')
-        a = 10;
-    else if (a == 'J')
-        a = 11;
-    else if (a == 'Q')
-        a = 12;
-    else if (a == 'K')
-        a = 13;
-    else if (a == 'A')
-        a = 14;
-    else
-        a = 0;
-
-    if (isdigit(b))
-        b = b - '0';
-    else if (b == 'T')
-        b = 10;
-    else if (b == 'J')
-        b = 11;
-    else if (b == 'Q')
-        b = 12;
-    else if (b == 'K')
-        b = 13;
-    else if (b == 'A')
-        b = 14;
-    else
-        b = 0;
-
-    if (a > b)
-        return 1;
-    else if (a < b)
-        return -1;
-    else
-        return 0;
 }
 
 char get_played_suit(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[])

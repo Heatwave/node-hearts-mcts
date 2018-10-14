@@ -6,7 +6,8 @@
                 "src/mcts.h",
                 "src/simulator.c",
                 "src/entry.c",
-                "src/uct.c"
+                "src/uct.c",
+                "src/util.c"
             ]
         }
     ]

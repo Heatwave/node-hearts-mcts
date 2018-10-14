@@ -15,6 +15,7 @@ struct stru_me {
     int32_t cards_count;
     char *round_card;
     char *cards[MAX_HAND_CARDS_LEN];
+    char *left_cards[MAX_CARDS_LEN];
     char *candidate_cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
 };
@@ -26,8 +27,9 @@ struct player {
     int32_t cards_count;
     char *round_card;
     char *cards[MAX_HAND_CARDS_LEN];
+    char *candidate_cards[MAX_HAND_CARDS_LEN];
     char *score_cards[MAX_HAND_CARDS_LEN];
-    int suits_status[4];
+    int suits_status[4];    // H S C D
 };
 
 struct node {
@@ -86,12 +88,31 @@ void clean_nodes_mem(struct node *rootnode);
 
 napi_value simulation(napi_env env, napi_callback_info info);
 
-double do_simulate(struct stru_me *me, char *left_cards[]);
+double do_simulation(struct stru_me *me, char *left_cards[]);
 void init_players(struct player players[], size_t players_len);
 void init_play_order(char *order[], struct stru_me *me, struct player players[]);
 void reset_play_order_on_start(char *order[], struct stru_me *me, struct player players[]);
 void remove_card_from_cards(char *cards[], char *card);
 void clean_cloned_me(struct stru_me *cloned_me);
 void clean_cloned_players(struct player players[]);
+
+
+napi_value simulate(napi_env env, napi_callback_info info);
+int get_simulate_parameter_me(napi_env env, napi_value me_js, struct stru_me *me);
+void clean_simulate_mem(struct stru_me *me, struct player players[], char *player_order[]);
+
+int32_t do_simulate(int32_t itermax, struct stru_me *me, struct player players[], char *player_order[], int is_AH_exposed);
+void copy_me(struct stru_me *me, struct stru_me *cloned_me);
+void copy_players(struct player players[], struct player cloned_players[]);
+void free_cloned_mem(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
+void play_game(struct stru_me *cloned_me, struct player cloned_players[], char *cloned_player_order[]);
+void update_me_candidate_cards(struct stru_me *cloned_me, char played_suit, int is_heart_broken);
+void update_player_candidate_cards(struct player *p, char played_suit, int is_heart_broken);
+char *choose_played_card_me(struct stru_me *cloned_me, char *current_round_cards[], int current_round_cards_len);
+char *choose_played_card_player(struct player *p, char *current_round_cards[], int current_round_cards_len);
+void play_card_me(struct stru_me *cloned_me, char *played_card);
+void play_card_player(struct player *p, char *played_card);
+void insert_score_cards(char *score_cards[], char *current_round_cards[]);
+void update_deal_score_based_on_score_cards(struct stru_me *me, struct player players[], int is_AH_exposed);
 
 #endif
