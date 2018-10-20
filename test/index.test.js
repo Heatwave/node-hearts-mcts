@@ -4,7 +4,7 @@ const assert = require('assert');
 
 const mcts = require('../index.js');
 
-const SIMULATE_ITERMAX = 2000;
+const SIMULATE_ITERMAX = 1200;
 
 function cloneObj(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -120,15 +120,15 @@ function pickCardMe(me, players, order) {
     else {
         let total_scores = {};
         let score;
+        let start = Date.now();
         for (const card of me.candidate_cards) {
             me.round_card = card;
-            let start = Date.now();
             score = mcts.simulate(SIMULATE_ITERMAX, me, players, order, 0);
-            let spend = Date.now() - start;
-            if (spend > 800)
-                console.log(spend);
             total_scores[card] = score;
         }
+        let spend = Date.now() - start;
+        if (spend > 800)
+            throw new Error(spend + " milliseconds spend");
 
         let best_score;
         for (const card in total_scores) {
@@ -406,7 +406,7 @@ let result = [0, 0, 0, 0];
 while (--i) {
     console.log('i:', i);
     rank = start();
-    result[rank-1]++;
+    result[rank - 1]++;
 }
 console.log(result);
 console.log(total_scores);

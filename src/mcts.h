@@ -109,7 +109,9 @@ void play_game(struct stru_me *cloned_me, struct player cloned_players[], char *
 void update_me_candidate_cards(struct stru_me *cloned_me, char played_suit, int is_heart_broken);
 void update_player_candidate_cards(struct player *p, char played_suit, int is_heart_broken);
 char *choose_played_card_me(struct stru_me *cloned_me, char *current_round_cards[], int current_round_cards_len);
-char *choose_played_card_player(struct player *p, char *current_round_cards[], int current_round_cards_len);
+char *choose_played_card_player(struct player *p, char *current_round_cards[], int current_round_cards_len, struct player players[], struct stru_me *me, char played_suit);
+char *low_scoring_player(struct player *p, char *current_round_cards[], int current_round_cards_len, char played_suit);
+char *shooting_player(struct player *p, char *current_round_cards[], int current_round_cards_len);
 void play_card_me(struct stru_me *cloned_me, char *played_card);
 void play_card_player(struct player *p, char *played_card);
 void insert_score_cards(char *score_cards[], char *current_round_cards[]);

@@ -209,17 +209,17 @@ int get_player_info(napi_env env, napi_value player_js_obj, struct player *playe
 {
     napi_status status;
 
-    // napi_value name_js;
-    // status = napi_get_named_property(env, player_js_obj, "player_name", &name_js);
-    // if (status != napi_ok) return 1;
+    napi_value name_js;
+    status = napi_get_named_property(env, player_js_obj, "player_name", &name_js);
+    if (status != napi_ok) return 1;
 
-    // size_t name_len;
-    // status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
-    // if (status != napi_ok) return 1;
+    size_t name_len;
+    status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
+    if (status != napi_ok) return 1;
 
-    // player->name = malloc(name_len + 1);
-    // status = napi_get_value_string_utf8(env, name_js, player->name, name_len+1, 0);
-    // if (status != napi_ok) return 1;
+    player->name = malloc(name_len + 1);
+    status = napi_get_value_string_utf8(env, name_js, player->name, name_len+1, 0);
+    if (status != napi_ok) return 1;
 
 
     napi_value deal_score_js;
@@ -532,12 +532,12 @@ napi_value simulate(napi_env env, napi_callback_info info)
     int32_t itermax;
 
     struct stru_me *me = malloc(sizeof(struct stru_me));
-    me->name = "me";
+    // me->name = "me";
 
     struct player players[3];
-    players[0].name = "p1";
-    players[1].name = "p2";
-    players[2].name = "p3";
+    // players[0].name = "p1";
+    // players[1].name = "p2";
+    // players[2].name = "p3";
 
     char *player_order[4];
 
@@ -575,6 +575,19 @@ napi_value simulate(napi_env env, napi_callback_info info)
 int get_simulate_parameter_me(napi_env env, napi_value me_js, struct stru_me *me)
 {
     napi_status status;
+
+    napi_value name_js;
+    status = napi_get_named_property(env, me_js, "player_name", &name_js);
+    if (status != napi_ok) return 1;
+
+    size_t name_len;
+    status = napi_get_value_string_utf8(env, name_js, NULL, 0, &name_len);
+    if (status != napi_ok) return 1;
+
+    me->name = malloc(name_len + 1);
+    status = napi_get_value_string_utf8(env, name_js, me->name, name_len+1, 0);
+    if (status != napi_ok) return 1;
+
 
     napi_value deal_score_js;
     status = napi_get_named_property(env, me_js, "deal_score", &deal_score_js);
@@ -701,6 +714,9 @@ int get_simulate_parameter_me(napi_env env, napi_value me_js, struct stru_me *me
 
 void clean_simulate_mem(struct stru_me *me, struct player players[], char *player_order[])
 {
+    if (me->name != NULL)
+        free(me->name);
+
     if (me->round_card != NULL)
         free(me->round_card);
 
